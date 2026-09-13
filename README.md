@@ -1,81 +1,280 @@
-# FairHome Allocation
+# FairHome
 
-## 1. What this app does
+FairHome is a Java and Spring Boot application for allocating 600 public housing flats through a fair and transparent lottery process.
 
-FairHome Allocation is a single Java / Spring Boot service for a public housing draw.
+Applications can come from two sources:
 
-The system accepts applications in two ways through **online** public form or when an officer enters a **paper** application. Both go through the same validation and intake process.
+* Online application submitted by the applicant
+* Paper application entered by an officer
 
-It also checks for possible **duplicate** applications. Instead of automatically rejecting a possible duplicate, it sends it to a review queue for an officer to check.
+Both use the same intake and validation flow.
 
-For the flat allocation, the system uses a transparent and repeatable lottery. It generates the result using **SHA-256** with a public seed and the application number, rather than relying on a hidden random generator.
+The system also detects possible duplicate applications and sends them to an officer for review instead of automatically rejecting them.
 
-Once the final draw is published, applicants can look up their own placement and see a clear explanation of why they received that placement, including the category or reservation they were considered under and the lottery result that determined their position.
+The final allocation uses a reproducible SHA-256 based lottery, so the published result can be independently verified.
 
-Nothing except **Java 21+** and a browser is required to run this application. The database is an H2 file created next to the process.
+---
 
-| Who | What they use |
-| --- | --- |
-| Applicant | `/apply`, `/status`, `/rules`, `/verify`, `/results` |
-| Officer | `/admin` — paper entry, duplicate queue, rule book, draw, audit |
+## 1. How It Works
 
-## 2. How this works ?
+```text
+Online Application ──┐
+                     ├──> Intake & Validation
+Paper Application ───┘          │
+                                ↓
+                        Duplicate Detection
+                                │
+                    ┌───────────┴───────────┐
+                    │                       │
+                 No Match             Possible Match
+                    │                       │
+                    │                 Officer Review
+                    │                       │
+                    └───────────┬───────────┘
+                                ↓
+                           Final Draw
+                                ↓
+                            Allocation
+                                ↓
+                             Result
+```
 
-## Example: From Application to Flat Allotment
+### Example
 
-Here is one example of how FairHome works from start to finish.
+An applicant submits an online application.
 
-**Ananya Reddy** applies online. At the same time, there is already a paper application in the system that looks similar to hers. An officer checks both applications, confirms that they belong to two different people, and allows both to take part in the draw. After the draw is published, Ananya can check her result and see why she received her position.
+The system validates the application, derives the income category from the declared income, and checks for possible duplicates.
 
-![FairHome HLD — Ananya Reddy's allotment](docs/hld-excalidraw.svg)
+If a similar paper application already exists, the new application is held for officer review.
 
-### The example, step by step
+The officer can decide that they are different people, in which case both applications continue.
 
-1. Ananya is 34 years old, belongs to the LIG category, has an annual income of ₹4.2 lakh, and has lived in Ward 12 for 9 years. She submits her application through `/apply`. The system validates her Aadhaar-style ID using the Verhoeff algorithm, determines her LIG category based on her income, and gives her the application number `FH-2026-004128` and receipt number `R8K2-M41Q`.
+Once all duplicate reviews are completed, the officer can run the final draw.
 
-2. The system finds an existing paper application, `FH-2026-001104`, that looks similar. It has the same date of birth, the name is about 92% similar, and the national ID differs by only one digit. The system does **not** reject either application automatically. Instead, Ananya's application is put into `PENDING_DUPLICATE_REVIEW`, and a duplicate-review task is added to the officer's queue.
+The applicant can then use their application number and receipt to view their result and the reason for their placement.
 
-3. The officer opens `/admin/duplicates` and compares both applications. After checking the details, the officer decides that they belong to **two different people — both applications can continue**. Both applications are moved back to `SUBMITTED`. The officer's decision, note, and identity are recorded in the audit log. The system will not allow the final draw to run while there are unresolved duplicate cases.
+---
 
-4. The officer first runs a dry run to check the allocation. This does not affect the actual published result. Once everything is ready, the officer runs the final draw and publishes it. Within the LIG category, applications are ordered using `SHA-256(seed + ":" + application number)`. Since Ananya has been living in the area for 9 years, she is considered for the `LOCAL` seats, which are filled first.
+## 2. Lottery
 
-5. After the results are published, Ananya goes to `/status` and enters her application number and receipt number. She sees:
+The final lottery is deterministic and does not depend on a hidden random number generator.
 
-   **Allotted · LIG / LOCAL · Serial 47**
+For each eligible application:
 
-   She can also see the step-by-step reason for her placement, including the category and reservation pool she was considered under and how the lottery determined her position.
+```text
+SHA-256(publicSeed + ":" + applicationNumber)
+```
 
-   Ananya can only see her own result. She cannot access another applicant's details. Since the lottery seed is public, anyone can independently calculate the SHA-256 value for Ananya's application and verify the lottery order.
+The resulting value is used to order applications within the applicable allocation pool.
 
-The same story is also shown visually on `/hld` once the application is running.
+The public seed is stored with the published draw, which allows the lottery order to be reproduced later.
 
-## 3. Assumptions
+The `Random` used while starting the application is only used to generate demo data. It is not used for the final allocation.
 
-- There are **600 identical flats** in this phase. We do not consider the floor, block, or flat size during allocation.
+---
 
-- The **income category is decided by the system** based on the income entered by the applicant. Applicants cannot choose their own category such as EWS, LIG, MIG, or HIG.
+## 3. Allocation Rules
 
-- An **existing resident** is someone who has lived continuously in the specified area for at least 3 years. This period can be changed in the configuration. Existing residents have a reserved quota within each income category. It is not used as a tie breaker.
+* There are 600 identical flats in the scheme.
+* The income category is derived from declared income. Applicants cannot select their category.
+* An existing resident is someone with at least 3 continuous years in the published area.
+* Local residents have a reserved quota within each income category.
+* Applicants who qualify for a reserved quota can also compete for open seats.
+* Largest remainder is used when converting percentages into whole seats.
+* Reserved seats are rounded down before allocating the remaining seats to the open pool.
+* Unfilled reserved seats return to that category's open pool.
+* Unfilled category seats can be redistributed scheme wide according to lottery rank.
+* The waiting list is 25% of each category's seats, rounded up.
+* When a duplicate is confirmed, the earlier application is kept by default unless the officer chooses otherwise.
 
-- **Reserved quotas work along with the main category.** If an applicant qualifies for a reserved quota, they are considered for those reserved flats first. They can also compete for the remaining open flats.
+The allocation rules are defined in:
 
-- The system uses the **largest remainder method** to convert percentage based quotas into whole numbers. Reserved seats within each category are rounded down first, so they cannot reduce the number of open seats.
+```text
+src/main/resources/rules/default-ruleset.json
+```
 
-- If some **reserved seats are not filled**, they are added back to the open seats of that category. If some seats in an entire income category remain unfilled, they are redistributed across the scheme based on lottery rank. Both rules are defined in the configuration.
+---
 
-- The **waiting list contains 25% of the seats** available for each category. The number is rounded up when needed.
+## 4. Duplicate Detection
 
-- When an officer confirms that two applications are duplicates, the **earlier application is kept by default**. The officer can choose to keep the later application instead if there is a valid reason.
+A possible duplicate is not automatically rejected.
 
-- Around **4,000 demo applications** are created when the application starts for the first time. They go through the same intake process as real applications, so the duplicate review queue contains actual results from the duplicate detection logic.
+The system compares information such as:
 
-- There is **one shared officer login** for the demo. There is no separate staff directory, different officer roles, password reset, or SSO.
+* National ID
+* Name
+* Date of birth
+* Phone
+* Email
 
-- The application runs as **one process**. Application intake is handled one at a time using a lock. If multiple application instances are used in the future, a database level lock would be needed.
+Possible matches are placed in the officer review queue.
 
-- The application uses **H2 in file mode** instead of keeping everything in memory. This allows the draw and other important data to remain available even after the application is restarted.
+The officer can decide whether the applications belong to the same person or to different people.
 
-## 4. Left out, and why
+The decision is recorded in the audit trail.
+
+A final draw cannot be published while duplicate reviews are still open.
+
+---
+
+## 5. Audit Trail
+
+Important actions are recorded in a hash chained audit log.
+
+Each entry contains the hash of the previous entry and its own calculated hash.
+
+```text
+Entry 1 → Hash 1
+             ↓
+Entry 2 + Hash 1 → Hash 2
+                       ↓
+Entry 3 + Hash 2 → Hash 3
+```
+
+This makes changes to individual audit records detectable.
+
+The audit data is stored in the H2 database for this assignment.
+
+---
+
+## 6. Demo Data
+
+When the application starts with an empty database, it generates around 4,000 demo applications.
+
+The demo data goes through the real application intake flow rather than being inserted directly into the database.
+
+It includes both online and paper applications and a few intentionally created duplicate cases so that the duplicate review flow can be demonstrated.
+
+Demo data generation is controlled by:
+
+```properties
+fairhome.demo-data.enabled=true
+fairhome.demo-data.applications=4000
+fairhome.demo-data.duplicate-review-count=3
+fairhome.demo-data.offline-percent=35
+fairhome.demo-data.seed=fairhome-demo-2026
+```
+
+To start without demo data:
+
+```bash
+java -Dfairhome.demo-data.enabled=false -jar target/fairhome.jar
+```
+
+---
+
+## 7. Technology
+
+* Java 21
+* Spring Boot
+* Spring Data JPA
+* H2
+* Maven
+* JUnit
+* SHA-256
+* JSON based configuration
+
+The application runs as a single Spring Boot process.
+
+H2 is used in file mode so data survives application restarts.
+
+---
+
+## 8. Running the Application
+
+### Requirements
+
+* Java 21+
+* Maven or Maven Wrapper
+
+No separate database installation is required.
+
+### Build
+
+Windows:
+
+```bash
+mvnw.cmd clean install
+```
+
+Linux/macOS:
+
+```bash
+./mvnw clean install
+```
+
+### Start
+
+```bash
+java -jar target/fairhome.jar
+```
+
+Open:
+
+```text
+http://localhost:8080
+```
+
+---
+
+## 9. Useful Pages
+
+| Page                | Purpose                         |
+| ------------------- | ------------------------------- |
+| `/apply`            | Submit an application           |
+| `/status`           | Check an application and result |
+| `/rules`            | View the active rules           |
+| `/verify`           | Verify published information    |
+| `/results`          | View published results          |
+| `/hld`              | View the system flow            |
+| `/admin`            | Officer console                 |
+| `/admin/duplicates` | Review possible duplicates      |
+
+### Demo Officer Login
+
+```text
+Username: admin
+Password: FairHome@2026
+```
+
+These credentials are only for local evaluation.
+
+---
+
+## 10. Tests
+
+Test cases are available under:
+
+```text
+src/test/resources/cases/
+```
+
+Run:
+
+```bash
+mvnw.cmd test
+```
+
+or:
+
+```bash
+./mvnw test
+```
+
+---
+
+## 11. Assumptions
+
+* This assignment focuses on application intake, eligibility, duplicate review, allocation, and result explanation.
+* Disability and ex-serviceman status are declared but supporting documents are not verified by the system.
+* A single officer account is used for the demo.
+* The application runs as one process.
+* H2 is used instead of PostgreSQL to keep the project easy to run on a clean machine.
+* The audit log is stored in the same database. A production system would use stronger protection and separate audit storage.
+
+---
+
+## 12. Left out, and why
 
 Some features are intentionally not included because they are outside the scope of this assignment.
 
@@ -89,56 +288,39 @@ Some features are intentionally not included because they are outside the scope 
 
 - **Applicant notification for duplicate review.** When the system finds a possible duplicate, it places the application in the review queue for an officer. The system does not currently send a notification to the applicant asking them to confirm their details. This can be added later as part of the notification workflow.
 
-- **SC/ST/OBC reservation.** The current design focuses on income categories and reserved quotas such as local residents. Caste based reservation is not included in this version. It can be added later by introducing the required rules and eligibility checks without changing the main allocation flow.
-
 - **A separate tamper proof audit store or HSM.** The audit log is hash chained and stored in the same database as the rest of the application data. This makes unauthorised changes to individual audit records detectable. However, someone with full access to the database could still change the entire chain. For a production system, the audit data would be stored separately with stronger protection. The important artefacts produced by this system are the final results hash and the rule file hash.
 
 - **Multiple application instances and PostgreSQL.** The assignment is designed to run on any machine with Java, so the demo uses H2 in file mode and runs as a single application instance. A production deployment could use PostgreSQL and database level locking when multiple instances need to process applications at the same time.
 
-## 5. How to run this app
 
-Needs **Java 21+**. The app listens on **http://localhost:8080**.
+These can be added later without changing the main allocation flow.
 
-```bash
-./mvnw clean install
-java -jar target/fairhome.jar
+---
+
+## 13. Project Structure
+
+```text
+src/
+ ├── main/
+ │   ├── java/
+ │   │   └── .../
+ │   └── resources/
+ │       ├── rules/
+ │       │   └── default-ruleset.json
+ │       └── application.properties
+ │
+ └── test/
+     └── resources/
+         └── cases/
+
+docs/
+ └── hld-excalidraw.svg
 ```
 
-Windows: `mvnw.cmd clean install`, then the same `java -jar`.
+---
 
-Open [http://localhost:8080](http://localhost:8080).
+## 14. About
 
-On first start the process:
+I am Tejas, a Java backend developer with around 4.5 years of experience working with Java, Spring Boot, microservices, Kafka, databases, REST APIs, Docker, and Jenkins.
 
-- creates `./data/fairhome.mv.db`
-- publishes the rule book in `src/main/resources/rules/default-ruleset.json`
-- seeds about 4,000 demo applications, including deliberate duplicates
-
-Empty start (no demo people):
-
-```bash
-java -Dfairhome.demo-data.enabled=false -jar target/fairhome.jar
-```
-
-Officer console: [http://localhost:8080/admin](http://localhost:8080/admin)
-
-```
-username: admin
-password: FairHome@2026
-```
-
-Change `fairhome.admin.username` and `fairhome.admin.password` in `src/main/resources/application.properties` before this is reachable from anywhere but your own machine.
-
-Useful paths: `/apply`, `/status`, `/rules`, `/hld` (the example board), `/admin`.
-
-Tests (JSON cases under `src/test/resources/cases/`):
-
-```bash
-./mvnw test
-```
-
-## 6. About the developer
-
-I am **Tejas**, a Java backend developer with about **4 years 6 months** at SunTec Business Solutions (banking and telecom). Day-to-day I work in **Java, Spring Boot, microservices, Kafka, PostgreSQL / Oracle, REST, Docker, Git, Jenkins**.
-
-I like finding the root cause, not only the patch. I built FairHome as a single-jar allocation system to show that same habit on a problem that has to be explained after the result is published.
+For this assignment, I focused on keeping the business rules clear, making the lottery reproducible, handling possible duplicates through officer review, and maintaining an audit trail for important decisions.

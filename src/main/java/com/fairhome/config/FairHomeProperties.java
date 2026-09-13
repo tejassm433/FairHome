@@ -19,7 +19,6 @@ public class FairHomeProperties {
     public static class DemoData {
         private boolean enabled = true;
         private int applications = 4000;
-        /** How many extra submissions are planted as held duplicate-review cases (2–3 is enough to test). */
         private int duplicateReviewCount = 3;
         private int offlinePercent = 35;
         private String seed = "fairhome-demo";
