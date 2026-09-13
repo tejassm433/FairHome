@@ -9,6 +9,8 @@ import com.fairhome.draw.DrawRun;
 import com.fairhome.draw.DrawService;
 import com.fairhome.rules.RuleSetService;
 import com.fairhome.rules.RuleSetVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -29,6 +31,8 @@ import java.util.List;
 @Controller
 public class ExportController {
 
+    private static final Logger log = LoggerFactory.getLogger(ExportController.class);
+
     private final DrawService drawService;
     private final ApplicationRepository applications;
     private final AuditEventRepository auditEvents;
@@ -44,6 +48,7 @@ public class ExportController {
 
     @GetMapping("/exports/draw/{runId}/results.csv")
     public ResponseEntity<String> results(@PathVariable Long runId) {
+        log.debug("FairHome : ExportController : in method results : START");
         DrawRun run = drawService.findRun(runId)
                 .orElseThrow(() -> new IllegalArgumentException("No draw run " + runId));
         StringBuilder csv = new StringBuilder();
@@ -71,12 +76,16 @@ public class ExportController {
                     .append(value(allocation.getReasonCode())).append(',')
                     .append(value(allocation.getReasonText())).append('\n');
         }
-        return file("fairhome-draw-" + runId + "-results.csv", "text/csv", csv.toString());
+        ResponseEntity<String> response = file("fairhome-draw-" + runId + "-results.csv", "text/csv",
+                csv.toString());
+        log.debug("FairHome : ExportController : in method results : END");
+        return response;
     }
 
     /** The step-by-step arithmetic of the draw, in the order it happened. */
     @GetMapping("/exports/draw/{runId}/workings.txt")
     public ResponseEntity<String> workings(@PathVariable Long runId) {
+        log.debug("FairHome : ExportController : in method workings : START");
         DrawRun run = drawService.findRun(runId)
                 .orElseThrow(() -> new IllegalArgumentException("No draw run " + runId));
         String body = """
@@ -95,18 +104,23 @@ public class ExportController {
                 run.getRuleSetVersion(), run.getRuleSetHash(), run.getSeed(), run.getResultsHash(),
                 run.isPublished() ? "yes, at " + run.getPublishedAt() : "no",
                 run.getQuotaWorkings());
-        return file("fairhome-draw-" + runId + "-workings.txt", "text/plain", body);
+        ResponseEntity<String> response = file("fairhome-draw-" + runId + "-workings.txt", "text/plain", body);
+        log.debug("FairHome : ExportController : in method workings : END");
+        return response;
     }
 
     /** The exact rule book a run used, byte for byte, so the hash can be recomputed. */
     @GetMapping("/exports/rules/{version}.json")
     public ResponseEntity<String> ruleVersion(@PathVariable Integer version) {
+        log.debug("FairHome : ExportController : in method ruleVersion : START");
         RuleSetVersion ruleSet = ruleSetService.history().stream()
                 .filter(v -> v.getVersion().equals(version))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("No rule version " + version));
-        return file("fairhome-rules-v" + version + ".json", MediaType.APPLICATION_JSON_VALUE,
-                ruleSet.getJson());
+        ResponseEntity<String> response = file("fairhome-rules-v" + version + ".json",
+                MediaType.APPLICATION_JSON_VALUE, ruleSet.getJson());
+        log.debug("FairHome : ExportController : in method ruleVersion : END");
+        return response;
     }
 
     /**
@@ -115,6 +129,7 @@ public class ExportController {
      */
     @GetMapping("/exports/applications.csv")
     public ResponseEntity<String> applicationRegister() {
+        log.debug("FairHome : ExportController : in method applicationRegister : START");
         StringBuilder csv = new StringBuilder(
                 "application_number,channel,status,submitted_at,recorded_at,recorded_by,paper_reference,"
                         + "applicant_name,date_of_birth,gender,national_id_masked,ward,annual_income,"
@@ -137,11 +152,14 @@ public class ExportController {
                     .append(value(a.getDifferentlyAbled())).append(',')
                     .append(value(a.getExServiceman())).append('\n');
         }
-        return file("fairhome-applications.csv", "text/csv", csv.toString());
+        ResponseEntity<String> response = file("fairhome-applications.csv", "text/csv", csv.toString());
+        log.debug("FairHome : ExportController : in method applicationRegister : END");
+        return response;
     }
 
     @GetMapping("/exports/audit.csv")
     public ResponseEntity<String> auditTrail() {
+        log.debug("FairHome : ExportController : in method auditTrail : START");
         StringBuilder csv = new StringBuilder(
                 "sequence,occurred_at,action,subject,actor,detail,previous_hash,entry_hash\n");
         List<AuditEvent> events = auditEvents.findAllByOrderBySequenceAsc();
@@ -155,24 +173,34 @@ public class ExportController {
                     .append(value(event.getPreviousHash())).append(',')
                     .append(value(event.getEntryHash())).append('\n');
         }
-        return file("fairhome-audit.csv", "text/csv", csv.toString());
+        ResponseEntity<String> response = file("fairhome-audit.csv", "text/csv", csv.toString());
+        log.debug("FairHome : ExportController : in method auditTrail : END");
+        return response;
     }
 
     private ResponseEntity<String> file(String name, String contentType, String body) {
-        return ResponseEntity.ok()
+        log.debug("FairHome : ExportController : in method file : START");
+        ResponseEntity<String> response = ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + name + "\"")
                 .header(HttpHeaders.CONTENT_TYPE, contentType + "; charset=UTF-8")
                 .body(body);
+        log.debug("FairHome : ExportController : in method file : END");
+        return response;
     }
 
     private String value(Object raw) {
+        log.debug("FairHome : ExportController : in method value : START");
         if (raw == null) {
+            log.debug("FairHome : ExportController : in method value : END");
             return "";
         }
         String text = raw.toString();
         if (text.contains(",") || text.contains("\"") || text.contains("\n")) {
-            return '"' + text.replace("\"", "\"\"").replace("\n", " ") + '"';
+            String escaped = '"' + text.replace("\"", "\"\"").replace("\n", " ") + '"';
+            log.debug("FairHome : ExportController : in method value : END");
+            return escaped;
         }
+        log.debug("FairHome : ExportController : in method value : END");
         return text;
     }
 }

@@ -17,6 +17,8 @@ import com.fairhome.rules.RuleSetService;
 import com.fairhome.rules.RuleSetVersion;
 import com.fairhome.support.Hashes;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -31,6 +33,8 @@ import java.util.Optional;
 /** Everything a member of the public can reach: apply, look up a placement, read the rules. */
 @Controller
 public class PublicController {
+
+    private static final Logger log = LoggerFactory.getLogger(PublicController.class);
 
     private final IntakeService intakeService;
     private final ApplicationRepository applications;
@@ -47,6 +51,7 @@ public class PublicController {
 
     @GetMapping("/")
     public String home(Model model) {
+        log.debug("FairHome : PublicController : in method home : START");
         RuleSetDocument rules = ruleSetService.activeRules();
         model.addAttribute("rules", rules);
         model.addAttribute("totalApplications", applications.count());
@@ -54,39 +59,52 @@ public class PublicController {
         model.addAttribute("offlineCount", applications.countByChannel(Channel.OFFLINE));
         model.addAttribute("publishedRun", drawService.publishedRun().orElse(null));
         model.addAttribute("navPage", "home");
+        log.debug("FairHome : PublicController : in method home : END");
         return "public/home";
     }
 
     @GetMapping("/hld")
     public String hld(Model model) {
+        log.debug("FairHome : PublicController : in method hld : START");
         model.addAttribute("navPage", "hld");
+        log.debug("FairHome : PublicController : in method hld : END");
         return "public/hld";
     }
 
     @GetMapping("/apply")
     public String applyForm(Model model) {
+        log.debug("FairHome : PublicController : in method applyForm : START");
         if (!model.containsAttribute("form")) {
             model.addAttribute("form", new ApplicationForm());
         }
         addFormReferenceData(model);
         model.addAttribute("navPage", "apply");
+        log.debug("FairHome : PublicController : in method applyForm : END");
         return "public/apply";
     }
 
     @PostMapping("/apply")
     public String submit(@Valid @ModelAttribute("form") ApplicationForm form, BindingResult binding,
                          Model model) {
+        log.debug("FairHome : PublicController : in method submit : START");
         if (binding.hasErrors()) {
+            log.warn("FairHome : PublicController : in method submit : validation failed");
             addFormReferenceData(model);
             model.addAttribute("navPage", "apply");
+            log.debug("FairHome : PublicController : in method submit : END");
             return "public/apply";
         }
         try {
             IntakeService.Receipt receipt = intakeService.submitOnline(form);
+            log.info("FairHome : PublicController : in method submit : application submitted : {}",
+                    receipt.applicationNumber());
             model.addAttribute("receipt", receipt);
             model.addAttribute("navPage", "apply");
+            log.debug("FairHome : PublicController : in method submit : END");
             return "public/receipt";
         } catch (IntakeException e) {
+            log.warn("FairHome : PublicController : in method submit : rejected intake : {}",
+                    e.getMessage());
             e.getFieldErrors().forEach((field, message) -> {
                 if (binding.getFieldError(field) == null) {
                     binding.rejectValue(field, "intake", message);
@@ -97,13 +115,16 @@ public class PublicController {
             }
             addFormReferenceData(model);
             model.addAttribute("navPage", "apply");
+            log.debug("FairHome : PublicController : in method submit : END");
             return "public/apply";
         }
     }
 
     @GetMapping("/status")
     public String statusForm(Model model) {
+        log.debug("FairHome : PublicController : in method statusForm : START");
         model.addAttribute("navPage", "status");
+        log.debug("FairHome : PublicController : in method statusForm : END");
         return "public/status";
     }
 
@@ -118,6 +139,7 @@ public class PublicController {
     @Transactional(readOnly = true)
     public String status(@RequestParam String applicationNumber, @RequestParam String referenceCode,
                          Model model) {
+        log.debug("FairHome : PublicController : in method status : START");
         model.addAttribute("navPage", "status");
         model.addAttribute("applicationNumber", applicationNumber);
 
@@ -126,8 +148,10 @@ public class PublicController {
 
         if (found.isEmpty() || referenceCode == null
                 || !found.get().getStatusLookupKey().equalsIgnoreCase(referenceCode.trim())) {
+            log.warn("FairHome : PublicController : in method status : not found : {}", applicationNumber);
             model.addAttribute("error", "We could not match that application number and reference code. "
                     + "Please check both against your receipt.");
+            log.debug("FairHome : PublicController : in method status : END");
             return "public/status";
         }
 
@@ -152,17 +176,20 @@ public class PublicController {
             }
             model.addAttribute("allocation", allocation);
         }
+        log.debug("FairHome : PublicController : in method status : END");
         return "public/status-result";
     }
 
     @GetMapping("/rules")
     public String rules(Model model) {
+        log.debug("FairHome : PublicController : in method rules : START");
         RuleSetVersion version = ruleSetService.activeVersion();
         model.addAttribute("version", version);
         model.addAttribute("rules", ruleSetService.parse(version.getJson()));
         model.addAttribute("predicates", ApplicantPredicates.descriptions());
         model.addAttribute("history", ruleSetService.history());
         model.addAttribute("navPage", "rules");
+        log.debug("FairHome : PublicController : in method rules : END");
         return "public/rules";
     }
 
@@ -172,6 +199,7 @@ public class PublicController {
      */
     @GetMapping("/verify")
     public String verify(@RequestParam(required = false) String applicationNumber, Model model) {
+        log.debug("FairHome : PublicController : in method verify : START");
         RuleSetDocument rules = ruleSetService.activeRules();
         model.addAttribute("rules", rules);
         model.addAttribute("navPage", "rules");
@@ -183,11 +211,13 @@ public class PublicController {
             model.addAttribute("shellEquivalent", "printf '%s' \"" + input + "\" | sha256sum");
         }
         drawService.publishedRun().ifPresent(run -> model.addAttribute("run", run));
+        log.debug("FairHome : PublicController : in method verify : END");
         return "public/verify";
     }
 
     @GetMapping("/results")
     public String results(Model model) {
+        log.debug("FairHome : PublicController : in method results : START");
         DrawRun published = drawService.runVisibleToApplicants().orElse(null);
         model.addAttribute("run", published);
         model.addAttribute("navPage", "results");
@@ -195,13 +225,16 @@ public class PublicController {
             model.addAttribute("summary", drawService.categorySummary(published.getId()));
             model.addAttribute("rules", ruleSetService.rulesForVersion(published.getRuleSetVersion()));
         }
+        log.debug("FairHome : PublicController : in method results : END");
         return "public/results";
     }
 
     private void addFormReferenceData(Model model) {
+        log.debug("FairHome : PublicController : in method addFormReferenceData : START");
         RuleSetDocument rules = ruleSetService.activeRules();
         model.addAttribute("rules", rules);
         model.addAttribute("genders", Gender.values());
         model.addAttribute("statuses", ApplicationStatus.values());
+        log.debug("FairHome : PublicController : in method addFormReferenceData : END");
     }
 }

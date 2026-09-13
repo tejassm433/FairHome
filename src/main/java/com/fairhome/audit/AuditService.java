@@ -36,6 +36,7 @@ public class AuditService {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AuditEvent record(String action, String subject, String actor, String detail) {
+        log.debug("FairHome : AuditService : in method record : START");
         long nextSequence = repository.maxSequence() + 1;
         String previousHash = repository.findFirstByOrderBySequenceDesc()
                 .map(AuditEvent::getEntryHash)
@@ -50,34 +51,51 @@ public class AuditService {
         event.setDetail(truncate(detail));
         event.setPreviousHash(previousHash);
         event.setEntryHash(Hashes.sha256Hex(event.canonicalPayload()));
-        return repository.save(event);
+        AuditEvent saved = repository.save(event);
+        log.info("FairHome : AuditService : in method record : audit recorded : {} {} by {}",
+                action, subject, saved.getActor());
+        log.debug("FairHome : AuditService : in method record : END");
+        return saved;
     }
 
     public Page<AuditEvent> page(Pageable pageable) {
-        return repository.findAllByOrderBySequenceDesc(pageable);
+        log.debug("FairHome : AuditService : in method page : START");
+        Page<AuditEvent> result = repository.findAllByOrderBySequenceDesc(pageable);
+        log.debug("FairHome : AuditService : in method page : END");
+        return result;
     }
 
     public long count() {
-        return repository.count();
+        log.debug("FairHome : AuditService : in method count : START");
+        long result = repository.count();
+        log.debug("FairHome : AuditService : in method count : END");
+        return result;
     }
 
     /** Recomputes the whole chain and reports the first entry that does not match. */
     public ChainCheck verifyChain() {
+        log.debug("FairHome : AuditService : in method verifyChain : START");
         List<AuditEvent> all = repository.findAllByOrderBySequenceAsc();
         String expectedPrevious = GENESIS;
         for (AuditEvent event : all) {
             if (!expectedPrevious.equals(event.getPreviousHash())) {
-                return new ChainCheck(false, all.size(), event.getSequence(),
+                ChainCheck check = new ChainCheck(false, all.size(), event.getSequence(),
                         "Entry " + event.getSequence() + " does not link to the entry before it.");
+                log.debug("FairHome : AuditService : in method verifyChain : END");
+                return check;
             }
             String recomputed = Hashes.sha256Hex(event.canonicalPayload());
             if (!recomputed.equals(event.getEntryHash())) {
-                return new ChainCheck(false, all.size(), event.getSequence(),
+                ChainCheck check = new ChainCheck(false, all.size(), event.getSequence(),
                         "Entry " + event.getSequence() + " has been altered since it was written.");
+                log.debug("FairHome : AuditService : in method verifyChain : END");
+                return check;
             }
             expectedPrevious = event.getEntryHash();
         }
-        return new ChainCheck(true, all.size(), null, "All " + all.size() + " entries verify.");
+        ChainCheck check = new ChainCheck(true, all.size(), null, "All " + all.size() + " entries verify.");
+        log.debug("FairHome : AuditService : in method verifyChain : END");
+        return check;
     }
 
     /**
@@ -87,11 +105,13 @@ public class AuditService {
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void repairUnstableHashes() {
+        log.debug("FairHome : AuditService : in method repairUnstableHashes : START");
         ChainCheck check = verifyChain();
         if (check.valid() || check.entries() == 0) {
+            log.debug("FairHome : AuditService : in method repairUnstableHashes : END");
             return;
         }
-        log.warn("Audit chain failed verification ({}). Rebuilding hashes from stored fields.",
+        log.warn("FairHome : AuditService : in method repairUnstableHashes : audit chain failed verification : {}",
                 check.message());
         List<AuditEvent> all = repository.findAllByOrderBySequenceAsc();
         String previous = GENESIS;
@@ -106,17 +126,17 @@ public class AuditService {
         }
         ChainCheck after = verifyChain();
         if (after.valid()) {
-            log.info("Audit chain rebuilt: {} entries now verify.", after.entries());
+            log.info("FairHome : AuditService : in method repairUnstableHashes : audit chain rebuilt : {} entries verify",
+                    after.entries());
         } else {
-            log.error("Audit chain still broken after rebuild: {}", after.message());
+            log.error("FairHome : AuditService : in method repairUnstableHashes : audit chain still broken : {}",
+                    after.message());
         }
+        log.debug("FairHome : AuditService : in method repairUnstableHashes : END");
     }
 
     private String truncate(String detail) {
-        if (detail == null) {
-            return "";
-        }
-        return detail.length() <= 2000 ? detail : detail.substring(0, 1997) + "...";
+        return detail == null ? "" : detail.length() <= 2000 ? detail : detail.substring(0, 1997) + "...";
     }
 
     public record ChainCheck(boolean valid, int entries, Long firstBadSequence, String message) {

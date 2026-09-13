@@ -25,6 +25,8 @@ import com.fairhome.rules.RuleSetService;
 import com.fairhome.rules.RuleSetVersion;
 import com.fairhome.rules.RuleValidationException;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -54,6 +56,8 @@ import java.util.Map;
 @RequestMapping("/admin")
 public class AdminController {
 
+    private static final Logger log = LoggerFactory.getLogger(AdminController.class);
+
     private final IntakeService intakeService;
     private final ApplicationRepository applications;
     private final DedupService dedupService;
@@ -79,21 +83,27 @@ public class AdminController {
 
     @ModelAttribute("officer")
     public String officer() {
-        return CurrentOfficer.name(properties);
+        log.debug("FairHome : AdminController : in method officer : START");
+        String name = CurrentOfficer.name(properties);
+        log.debug("FairHome : AdminController : in method officer : END");
+        return name;
     }
 
     @GetMapping("/login")
     public String login(@RequestParam(required = false) String error,
                         @RequestParam(required = false) String loggedOut,
                         Model model) {
+        log.debug("FairHome : AdminController : in method login : START");
         model.addAttribute("navPage", "admin-login");
         model.addAttribute("loginError", error != null);
         model.addAttribute("loggedOut", loggedOut != null);
+        log.debug("FairHome : AdminController : in method login : END");
         return "admin/login";
     }
 
     @GetMapping
     public String dashboard(Model model) {
+        log.debug("FairHome : AdminController : in method dashboard : START");
         model.addAttribute("navPage", "admin-dashboard");
         model.addAttribute("total", applications.count());
         model.addAttribute("online", applications.countByChannel(Channel.ONLINE));
@@ -109,11 +119,13 @@ public class AdminController {
         model.addAttribute("runs", drawService.allRuns());
         model.addAttribute("publishedRun", drawService.publishedRun().orElse(null));
         model.addAttribute("auditCount", auditService.count());
+        log.debug("FairHome : AdminController : in method dashboard : END");
         return "admin/dashboard";
     }
 
     @GetMapping("/offline-entry")
     public String offlineEntryForm(Model model) {
+        log.debug("FairHome : AdminController : in method offlineEntryForm : START");
         if (!model.containsAttribute("form")) {
             ApplicationForm form = new ApplicationForm();
             form.setRecordedBy(CurrentOfficer.name(properties));
@@ -121,24 +133,33 @@ public class AdminController {
             model.addAttribute("form", form);
         }
         addFormReferenceData(model);
+        log.debug("FairHome : AdminController : in method offlineEntryForm : END");
         return "admin/offline-entry";
     }
 
     @PostMapping("/offline-entry")
     public String recordOffline(@Valid @ModelAttribute("form") ApplicationForm form,
                                 BindingResult binding, Model model) {
+        log.debug("FairHome : AdminController : in method recordOffline : START");
         if (binding.hasErrors()) {
+            log.warn("FairHome : AdminController : in method recordOffline : validation failed");
             addFormReferenceData(model);
+            log.debug("FairHome : AdminController : in method recordOffline : END");
             return "admin/offline-entry";
         }
         try {
             IntakeService.Receipt receipt = intakeService.recordOffline(form,
                     form.getRecordedBy() == null ? CurrentOfficer.name(properties)
                             : form.getRecordedBy());
+            log.info("FairHome : AdminController : in method recordOffline : application submitted : {}",
+                    receipt.applicationNumber());
             model.addAttribute("receipt", receipt);
             model.addAttribute("navPage", "admin-offline");
+            log.debug("FairHome : AdminController : in method recordOffline : END");
             return "admin/offline-receipt";
         } catch (IntakeException e) {
+            log.warn("FairHome : AdminController : in method recordOffline : rejected intake : {}",
+                    e.getMessage());
             e.getFieldErrors().forEach((field, message) -> {
                 if (binding.getFieldError(field) == null) {
                     binding.rejectValue(field, "intake", message);
@@ -148,12 +169,14 @@ public class AdminController {
                 binding.reject("intake", e.getMessage());
             }
             addFormReferenceData(model);
+            log.debug("FairHome : AdminController : in method recordOffline : END");
             return "admin/offline-entry";
         }
     }
 
     @GetMapping("/duplicates")
     public String duplicates(@RequestParam(defaultValue = "0") int page, Model model) {
+        log.debug("FairHome : AdminController : in method duplicates : START");
         model.addAttribute("navPage", "admin-duplicates");
         Page<DuplicateFlag> flags = dedupService.openQueue(PageRequest.of(Math.max(page, 0), 8));
         List<DuplicateQueueItem> queue = new ArrayList<>();
@@ -169,14 +192,17 @@ public class AdminController {
         model.addAttribute("results", new PageImpl<>(queue, flags.getPageable(), flags.getTotalElements()));
         model.addAttribute("openCount", flags.getTotalElements());
         model.addAttribute("pageNumber", flags.getNumber());
+        log.debug("FairHome : AdminController : in method duplicates : END");
         return "admin/duplicates";
     }
 
     @GetMapping("/duplicates/{flagId}/resolve")
     public String resolveDuplicateGet(@PathVariable Long flagId, RedirectAttributes redirect) {
+        log.debug("FairHome : AdminController : in method resolveDuplicateGet : START");
         redirect.addFlashAttribute("error",
                 "A decision has to be submitted from the queue, not opened as a link. "
                         + "Use the buttons on the card for flag " + flagId + ".");
+        log.debug("FairHome : AdminController : in method resolveDuplicateGet : END");
         return "redirect:/admin/duplicates";
     }
 
@@ -187,6 +213,7 @@ public class AdminController {
                                    @RequestParam(required = false) String note,
                                    @RequestParam(defaultValue = "0") int page,
                                    RedirectAttributes redirect) {
+        log.debug("FairHome : AdminController : in method resolveDuplicate : START");
         try {
             DuplicateFlag resolved = dedupService.resolve(flagId, decision, keep,
                     CurrentOfficer.name(properties), note);
@@ -195,8 +222,11 @@ public class AdminController {
                     + " stays in the draw."
                     : "Recorded as two different people. Both applications are back in the draw.");
         } catch (RuntimeException e) {
+            log.error("FairHome : AdminController : in method resolveDuplicate : error : {}",
+                    e.getMessage(), e);
             redirect.addFlashAttribute("error", e.getMessage());
         }
+        log.debug("FairHome : AdminController : in method resolveDuplicate : END");
         return "redirect:/admin/duplicates?page=" + Math.max(page, 0);
     }
 
@@ -206,6 +236,7 @@ public class AdminController {
                                   @RequestParam(required = false) Channel channel,
                                   @RequestParam(defaultValue = "0") int page,
                                   Model model) {
+        log.debug("FairHome : AdminController : in method applicationList : START");
         Page<Application> results = applications.search(q, status, channel, PageRequest.of(page, 25));
         model.addAttribute("navPage", "admin-applications");
         model.addAttribute("results", results);
@@ -215,12 +246,14 @@ public class AdminController {
         model.addAttribute("statuses", ApplicationStatus.values());
         model.addAttribute("channels", Channel.values());
         model.addAttribute("pageNumber", page);
+        log.debug("FairHome : AdminController : in method applicationList : END");
         return "admin/applications";
     }
 
     @GetMapping("/applications/{applicationNumber}")
     @Transactional(readOnly = true)
     public String applicationDetail(@PathVariable String applicationNumber, Model model) {
+        log.debug("FairHome : AdminController : in method applicationDetail : START");
         Application application = applications.findByApplicationNumber(applicationNumber)
                 .orElseThrow(() -> new IllegalArgumentException("No application " + applicationNumber));
         model.addAttribute("navPage", "admin-applications");
@@ -246,19 +279,24 @@ public class AdminController {
         }
         model.addAttribute("allocationHistory", history);
         model.addAttribute("runs", drawService.allRuns());
+        log.debug("FairHome : AdminController : in method applicationDetail : END");
         return "admin/application-detail";
     }
 
     @PostMapping("/applications/{applicationNumber}/withdraw")
     public String withdraw(@PathVariable String applicationNumber,
                            @RequestParam(required = false) String reason, RedirectAttributes redirect) {
+        log.debug("FairHome : AdminController : in method withdraw : START");
         intakeService.withdraw(applicationNumber, CurrentOfficer.name(properties), reason);
+        log.info("FairHome : AdminController : in method withdraw : withdrawal : {}", applicationNumber);
         redirect.addFlashAttribute("message", applicationNumber + " marked as withdrawn.");
+        log.debug("FairHome : AdminController : in method withdraw : END");
         return "redirect:/admin/applications/" + applicationNumber;
     }
 
     @GetMapping("/rules")
     public String rulesEditor(Model model) {
+        log.debug("FairHome : AdminController : in method rulesEditor : START");
         RuleSetVersion active = ruleSetService.activeVersion();
         model.addAttribute("navPage", "admin-rules");
         if (!model.containsAttribute("json")) {
@@ -268,42 +306,58 @@ public class AdminController {
         model.addAttribute("history", ruleSetService.history());
         model.addAttribute("predicates", ApplicantPredicates.descriptions());
         model.addAttribute("hasRuns", !drawService.allRuns().isEmpty());
+        log.debug("FairHome : AdminController : in method rulesEditor : END");
         return "admin/rules";
     }
 
     @PostMapping("/rules")
     public String publishRules(@RequestParam String json, @RequestParam(required = false) String note,
                                RedirectAttributes redirect, Model model) {
+        log.debug("FairHome : AdminController : in method publishRules : START");
         try {
             RuleSetVersion published = ruleSetService.publish(json,
                     CurrentOfficer.name(properties), note);
+            log.info("FairHome : AdminController : in method publishRules : published rules : version {}",
+                    published.getVersion());
             redirect.addFlashAttribute("message", "Published rule version " + published.getVersion()
                     + " with content hash " + published.getContentHash() + ".");
+            log.debug("FairHome : AdminController : in method publishRules : END");
             return "redirect:/admin/rules";
         } catch (RuleValidationException e) {
+            log.warn("FairHome : AdminController : in method publishRules : validation failed : {}",
+                    e.getProblems());
             model.addAttribute("problems", e.getProblems());
             model.addAttribute("json", json);
             model.addAttribute("note", note);
-            return rulesEditor(model);
+            String view = rulesEditor(model);
+            log.debug("FairHome : AdminController : in method publishRules : END");
+            return view;
         }
     }
 
     @PostMapping("/rules/reset")
     public String resetRules(RedirectAttributes redirect) {
+        log.debug("FairHome : AdminController : in method resetRules : START");
         try {
             RuleSetVersion published = ruleSetService.publish(ruleSetService.defaultRuleJson(),
                     CurrentOfficer.name(properties),
                     "Reverted to the rule book shipped with the application");
+            log.info("FairHome : AdminController : in method resetRules : published rules : version {}",
+                    published.getVersion());
             redirect.addFlashAttribute("message", "Reverted to the shipped rule book as version "
                     + published.getVersion() + ".");
         } catch (RuleValidationException e) {
+            log.warn("FairHome : AdminController : in method resetRules : validation failed : {}",
+                    e.getProblems());
             redirect.addFlashAttribute("error", String.join("; ", e.getProblems()));
         }
+        log.debug("FairHome : AdminController : in method resetRules : END");
         return "redirect:/admin/rules";
     }
 
     @GetMapping("/draw")
     public String drawConsole(Model model) {
+        log.debug("FairHome : AdminController : in method drawConsole : START");
         model.addAttribute("navPage", "admin-draw");
         model.addAttribute("runs", drawService.allRuns());
         model.addAttribute("openFlags", dedupService.openCount());
@@ -311,20 +365,27 @@ public class AdminController {
         model.addAttribute("rules", ruleSetService.activeRules());
         model.addAttribute("ruleVersion", ruleSetService.activeVersion());
         model.addAttribute("publishedRun", drawService.publishedRun().orElse(null));
+        log.debug("FairHome : AdminController : in method drawConsole : END");
         return "admin/draw";
     }
 
     @PostMapping("/draw/run")
     public String runDraw(@RequestParam DrawMode mode, @RequestParam(required = false) String note,
                           RedirectAttributes redirect) {
+        log.debug("FairHome : AdminController : in method runDraw : START");
         try {
             DrawRun run = drawService.run(mode, CurrentOfficer.name(properties), note);
+            log.info("FairHome : AdminController : in method runDraw : draw completed : run {} mode {}",
+                    run.getId(), mode);
             redirect.addFlashAttribute("message", mode.getLabel() + " " + run.getId()
                     + " completed: " + run.getAllotted() + " flats allotted, " + run.getWaitlisted()
                     + " waitlisted. Results hash " + run.getShortResultsHash() + ".");
+            log.debug("FairHome : AdminController : in method runDraw : END");
             return "redirect:/admin/draw/" + run.getId();
         } catch (RuntimeException e) {
+            log.error("FairHome : AdminController : in method runDraw : error : {}", e.getMessage(), e);
             redirect.addFlashAttribute("error", e.getMessage());
+            log.debug("FairHome : AdminController : in method runDraw : END");
             return "redirect:/admin/draw";
         }
     }
@@ -336,6 +397,7 @@ public class AdminController {
                             @RequestParam(required = false) String q,
                             @RequestParam(defaultValue = "0") int page,
                             Model model) {
+        log.debug("FairHome : AdminController : in method runDetail : START");
         DrawRun run = drawService.findRun(runId)
                 .orElseThrow(() -> new IllegalArgumentException("No draw run " + runId));
         model.addAttribute("navPage", "admin-draw");
@@ -349,62 +411,80 @@ public class AdminController {
         model.addAttribute("category", category);
         model.addAttribute("q", q);
         model.addAttribute("pageNumber", page);
+        log.debug("FairHome : AdminController : in method runDetail : END");
         return "admin/draw-detail";
     }
 
     @PostMapping("/draw/{runId}/publish")
     public String publishRun(@PathVariable Long runId, RedirectAttributes redirect) {
+        log.debug("FairHome : AdminController : in method publishRun : START");
         try {
             drawService.publish(runId, CurrentOfficer.name(properties));
+            log.info("FairHome : AdminController : in method publishRun : published draw run : {}", runId);
             redirect.addFlashAttribute("message", "Draw run " + runId
                     + " is now the published official result and is visible to applicants.");
         } catch (RuntimeException e) {
+            log.error("FairHome : AdminController : in method publishRun : error : {}", e.getMessage(), e);
             redirect.addFlashAttribute("error", e.getMessage());
         }
+        log.debug("FairHome : AdminController : in method publishRun : END");
         return "redirect:/admin/draw/" + runId;
     }
 
     @PostMapping("/draw/{runId}/withdraw")
     public String withdrawRun(@PathVariable Long runId, @RequestParam(required = false) String reason,
                               RedirectAttributes redirect) {
+        log.debug("FairHome : AdminController : in method withdrawRun : START");
         try {
             drawService.withdrawPublication(runId, CurrentOfficer.name(properties), reason);
+            log.info("FairHome : AdminController : in method withdrawRun : withdrawal : draw run {}",
+                    runId);
             redirect.addFlashAttribute("message", "Publication of draw run " + runId
                     + " withdrawn. The reason is on the audit trail.");
         } catch (RuntimeException e) {
+            log.error("FairHome : AdminController : in method withdrawRun : error : {}", e.getMessage(), e);
             redirect.addFlashAttribute("error", e.getMessage());
         }
+        log.debug("FairHome : AdminController : in method withdrawRun : END");
         return "redirect:/admin/draw/" + runId;
     }
 
     @PostMapping("/draw/{runId}/delete")
     public String deleteRun(@PathVariable Long runId, RedirectAttributes redirect) {
+        log.debug("FairHome : AdminController : in method deleteRun : START");
         try {
             drawService.deleteRun(runId, CurrentOfficer.name(properties));
             redirect.addFlashAttribute("message", "Deleted draw run " + runId + ".");
         } catch (RuntimeException e) {
+            log.error("FairHome : AdminController : in method deleteRun : error : {}", e.getMessage(), e);
             redirect.addFlashAttribute("error", e.getMessage());
         }
+        log.debug("FairHome : AdminController : in method deleteRun : END");
         return "redirect:/admin/draw";
     }
 
     @GetMapping("/audit")
     public String audit(@RequestParam(defaultValue = "0") int page, Model model) {
+        log.debug("FairHome : AdminController : in method audit : START");
         model.addAttribute("navPage", "admin-audit");
         model.addAttribute("events", auditService.page(PageRequest.of(page, 50)));
         model.addAttribute("pageNumber", page);
         model.addAttribute("chain", auditService.verifyChain());
+        log.debug("FairHome : AdminController : in method audit : END");
         return "admin/audit";
     }
 
     private void addFormReferenceData(Model model) {
+        log.debug("FairHome : AdminController : in method addFormReferenceData : START");
         model.addAttribute("navPage", "admin-offline");
         model.addAttribute("rules", ruleSetService.activeRules());
         model.addAttribute("genders", Gender.values());
+        log.debug("FairHome : AdminController : in method addFormReferenceData : END");
     }
 
     /** Field-by-field comparison shown side by side in the duplicate queue. */
     private List<FieldComparison> buildComparison(Application a, Application b) {
+        log.debug("FairHome : AdminController : in method buildComparison : START");
         List<FieldComparison> rows = new ArrayList<>();
         rows.add(compare("Name as written", a.getFullName(), b.getFullName()));
         rows.add(compare("Name normalised", a.getNormalisedName(), b.getNormalisedName()));
@@ -421,13 +501,17 @@ public class AdminController {
                 String.valueOf(b.getYearsInArea())));
         rows.add(compare("Channel", a.getChannel().getLabel(), b.getChannel().getLabel()));
         rows.add(compare("Paper reference", a.getPaperReference(), b.getPaperReference()));
+        log.debug("FairHome : AdminController : in method buildComparison : END");
         return rows;
     }
 
     private FieldComparison compare(String label, String left, String right) {
+        log.debug("FairHome : AdminController : in method compare : START");
         String l = left == null ? "-" : left;
         String r = right == null ? "-" : right;
-        return new FieldComparison(label, l, r, l.equalsIgnoreCase(r));
+        FieldComparison result = new FieldComparison(label, l, r, l.equalsIgnoreCase(r));
+        log.debug("FairHome : AdminController : in method compare : END");
+        return result;
     }
 
     public record FieldComparison(String label, String newValue, String existingValue, boolean same) {

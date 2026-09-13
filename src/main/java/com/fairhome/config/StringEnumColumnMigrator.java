@@ -52,18 +52,23 @@ public class StringEnumColumnMigrator implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        log.debug("FairHome : StringEnumColumnMigrator : in method run : START");
         try (Connection connection = dataSource.getConnection()) {
             for (EnumColumn column : COLUMNS) {
                 migrate(connection, column);
             }
         } catch (SQLException e) {
+            log.error("FairHome : StringEnumColumnMigrator : in method run : failed to normalise enum columns", e);
             throw new IllegalStateException("Could not normalise enum columns to VARCHAR", e);
         }
+        log.debug("FairHome : StringEnumColumnMigrator : in method run : END");
     }
 
     private void migrate(Connection connection, EnumColumn column) throws SQLException {
+        log.debug("FairHome : StringEnumColumnMigrator : in method migrate : START");
         ColumnRef ref = findColumn(connection, column.table(), column.column());
         if (ref == null) {
+            log.debug("FairHome : StringEnumColumnMigrator : in method migrate : END");
             return;
         }
         if (!isCharacterType(ref.typeName())) {
@@ -76,10 +81,12 @@ public class StringEnumColumnMigrator implements ApplicationRunner {
                     ref.tableName(), ref.columnName(), ref.typeName());
         }
         rewriteOrdinals(connection, ref, column.type());
+        log.debug("FairHome : StringEnumColumnMigrator : in method migrate : END");
     }
 
     private void rewriteOrdinals(Connection connection, ColumnRef ref, Class<? extends Enum<?>> type)
             throws SQLException {
+        log.debug("FairHome : StringEnumColumnMigrator : in method rewriteOrdinals : START");
         StringBuilder sql = new StringBuilder("update ")
                 .append(ref.quotedTable())
                 .append(" set ")
@@ -104,33 +111,43 @@ public class StringEnumColumnMigrator implements ApplicationRunner {
                         updated, ref.tableName(), ref.columnName());
             }
         }
+        log.debug("FairHome : StringEnumColumnMigrator : in method rewriteOrdinals : END");
     }
 
     private ColumnRef findColumn(Connection connection, String table, String column) throws SQLException {
+        log.debug("FairHome : StringEnumColumnMigrator : in method findColumn : START");
         DatabaseMetaData meta = connection.getMetaData();
         try (ResultSet rs = meta.getColumns(null, null, "%", "%")) {
             while (rs.next()) {
                 String tableName = rs.getString("TABLE_NAME");
                 String columnName = rs.getString("COLUMN_NAME");
                 if (table.equalsIgnoreCase(tableName) && column.equalsIgnoreCase(columnName)) {
-                    return new ColumnRef(
+                    ColumnRef ref = new ColumnRef(
                             rs.getString("TABLE_CAT"),
                             rs.getString("TABLE_SCHEM"),
                             tableName,
                             columnName,
                             rs.getString("TYPE_NAME"));
+                    log.debug("FairHome : StringEnumColumnMigrator : in method findColumn : END");
+                    return ref;
                 }
             }
         }
+        log.debug("FairHome : StringEnumColumnMigrator : in method findColumn : END");
         return null;
     }
 
     private static boolean isCharacterType(String typeName) {
+        log.debug("FairHome : StringEnumColumnMigrator : in method isCharacterType : START");
         if (typeName == null) {
+            log.debug("FairHome : StringEnumColumnMigrator : in method isCharacterType : END");
             return false;
         }
         String normalised = typeName.toUpperCase();
-        return normalised.contains("CHAR") || normalised.contains("CLOB") || normalised.contains("TEXT");
+        boolean characterType = normalised.contains("CHAR") || normalised.contains("CLOB")
+                || normalised.contains("TEXT");
+        log.debug("FairHome : StringEnumColumnMigrator : in method isCharacterType : END");
+        return characterType;
     }
 
     private record EnumColumn(String table, String column, int width, Class<? extends Enum<?>> type) {

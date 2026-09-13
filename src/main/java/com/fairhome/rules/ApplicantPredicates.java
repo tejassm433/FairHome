@@ -1,6 +1,8 @@
 package com.fairhome.rules;
 
 import com.fairhome.application.Application;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
@@ -16,6 +18,8 @@ import java.util.function.BiPredicate;
  * list, so no rule edit can silently change what "differently abled" means.
  */
 public final class ApplicantPredicates {
+
+    private static final Logger log = LoggerFactory.getLogger(ApplicantPredicates.class);
 
     /** (application, ruleSet) -> does this application qualify for the quota. */
     private static final Map<String, BiPredicate<Application, RuleSetDocument>> REGISTRY =
@@ -58,27 +62,41 @@ public final class ApplicantPredicates {
 
     private static void register(String key, String description,
                                 BiPredicate<Application, RuleSetDocument> predicate) {
+        log.debug("FairHome : ApplicantPredicates : in method register : START");
         REGISTRY.put(key, predicate);
         DESCRIPTIONS.put(key, description);
+        log.debug("FairHome : ApplicantPredicates : in method register : END");
     }
 
     public static boolean isKnown(String key) {
-        return REGISTRY.containsKey(key);
+        log.debug("FairHome : ApplicantPredicates : in method isKnown : START");
+        boolean known = REGISTRY.containsKey(key);
+        log.debug("FairHome : ApplicantPredicates : in method isKnown : END");
+        return known;
     }
 
     public static Set<String> keys() {
-        return REGISTRY.keySet();
+        log.debug("FairHome : ApplicantPredicates : in method keys : START");
+        Set<String> keys = REGISTRY.keySet();
+        log.debug("FairHome : ApplicantPredicates : in method keys : END");
+        return keys;
     }
 
     public static Map<String, String> descriptions() {
-        return Map.copyOf(DESCRIPTIONS);
+        log.debug("FairHome : ApplicantPredicates : in method descriptions : START");
+        Map<String, String> descriptions = Map.copyOf(DESCRIPTIONS);
+        log.debug("FairHome : ApplicantPredicates : in method descriptions : END");
+        return descriptions;
     }
 
     public static boolean test(String key, Application application, RuleSetDocument rules) {
+        log.debug("FairHome : ApplicantPredicates : in method test : START");
         BiPredicate<Application, RuleSetDocument> predicate = REGISTRY.get(key);
         if (predicate == null) {
             throw new IllegalArgumentException("Unknown applicant predicate: " + key);
         }
-        return predicate.test(application, rules);
+        boolean result = predicate.test(application, rules);
+        log.debug("FairHome : ApplicantPredicates : in method test : END");
+        return result;
     }
 }

@@ -1,5 +1,8 @@
 package com.fairhome.support;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.Locale;
@@ -11,6 +14,8 @@ import java.util.Locale;
  */
 public final class NameMatching {
 
+    private static final Logger log = LoggerFactory.getLogger(NameMatching.class);
+
     private static final String[] HONORIFICS = {"mr", "mrs", "ms", "miss", "shri", "smt", "sri",
             "dr", "prof", "kum", "md", "mohd"};
 
@@ -19,7 +24,9 @@ public final class NameMatching {
 
     /** Lower-cased, accent-stripped, honorific-free, alphabetically ordered tokens. */
     public static String normalise(String name) {
+        log.debug("FairHome : NameMatching : in method normalise : START");
         if (name == null) {
+            log.debug("FairHome : NameMatching : in method normalise : END");
             return "";
         }
         String ascii = Normalizer.normalize(name, Normalizer.Form.NFD)
@@ -31,27 +38,36 @@ public final class NameMatching {
                 .filter(t -> !isHonorific(t))
                 .toArray(String[]::new);
         Arrays.sort(tokens);
-        return String.join(" ", tokens);
+        String result = String.join(" ", tokens);
+        log.debug("FairHome : NameMatching : in method normalise : END");
+        return result;
     }
 
     private static boolean isHonorific(String token) {
+        log.debug("FairHome : NameMatching : in method isHonorific : START");
         for (String h : HONORIFICS) {
             if (h.equals(token)) {
+                log.debug("FairHome : NameMatching : in method isHonorific : END");
                 return true;
             }
         }
+        log.debug("FairHome : NameMatching : in method isHonorific : END");
         return false;
     }
 
     /** Jaro-Winkler similarity in [0,1]; 1.0 means identical. */
     public static double similarity(String a, String b) {
+        log.debug("FairHome : NameMatching : in method similarity : START");
         if (a == null || b == null) {
+            log.debug("FairHome : NameMatching : in method similarity : END");
             return 0d;
         }
         if (a.equals(b)) {
+            log.debug("FairHome : NameMatching : in method similarity : END");
             return 1d;
         }
         if (a.isEmpty() || b.isEmpty()) {
+            log.debug("FairHome : NameMatching : in method similarity : END");
             return 0d;
         }
         double jaro = jaro(a, b);
@@ -60,10 +76,13 @@ public final class NameMatching {
         while (prefix < max && a.charAt(prefix) == b.charAt(prefix)) {
             prefix++;
         }
-        return jaro + prefix * 0.1 * (1 - jaro);
+        double result = jaro + prefix * 0.1 * (1 - jaro);
+        log.debug("FairHome : NameMatching : in method similarity : END");
+        return result;
     }
 
     private static double jaro(String s1, String s2) {
+        log.debug("FairHome : NameMatching : in method jaro : START");
         int window = Math.max(0, Math.max(s1.length(), s2.length()) / 2 - 1);
         boolean[] s1Matched = new boolean[s1.length()];
         boolean[] s2Matched = new boolean[s2.length()];
@@ -83,6 +102,7 @@ public final class NameMatching {
             }
         }
         if (matches == 0) {
+            log.debug("FairHome : NameMatching : in method jaro : END");
             return 0d;
         }
 
@@ -102,19 +122,28 @@ public final class NameMatching {
         }
 
         double m = matches;
-        return (m / s1.length() + m / s2.length() + (m - transpositions / 2.0) / m) / 3.0;
+        double result = (m / s1.length() + m / s2.length() + (m - transpositions / 2.0) / m) / 3.0;
+        log.debug("FairHome : NameMatching : in method jaro : END");
+        return result;
     }
 
     /** Keeps only the trailing 10 digits so "+91 98765 43210" and "09876543210" compare equal. */
     public static String normalisePhone(String phone) {
+        log.debug("FairHome : NameMatching : in method normalisePhone : START");
         if (phone == null) {
+            log.debug("FairHome : NameMatching : in method normalisePhone : END");
             return "";
         }
         String digits = phone.replaceAll("\\D", "");
-        return digits.length() > 10 ? digits.substring(digits.length() - 10) : digits;
+        String result = digits.length() > 10 ? digits.substring(digits.length() - 10) : digits;
+        log.debug("FairHome : NameMatching : in method normalisePhone : END");
+        return result;
     }
 
     public static String normaliseEmail(String email) {
-        return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
+        log.debug("FairHome : NameMatching : in method normaliseEmail : START");
+        String result = email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
+        log.debug("FairHome : NameMatching : in method normaliseEmail : END");
+        return result;
     }
 }

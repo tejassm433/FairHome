@@ -4,6 +4,8 @@ import com.fairhome.application.Application;
 import com.fairhome.rules.ApplicantPredicates;
 import com.fairhome.rules.RuleSetDocument;
 import com.fairhome.support.Hashes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -33,11 +35,14 @@ import java.util.Map;
 @Component
 public class AllocationEngine {
 
+    private static final Logger log = LoggerFactory.getLogger(AllocationEngine.class);
+
     private static final String OPEN_POOL = "OPEN";
     private static final String SPILL_POOL = "SPILL";
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH);
 
     public Result run(RuleSetDocument rules, List<Application> allApplications, LocalDate drawDate) {
+        log.debug("FairHome : AllocationEngine : in method run : START");
         List<String> workings = new ArrayList<>();
         workings.add("Scheme: " + rules.schemeName());
         workings.add("Rule book: " + rules.rulesVersionLabel());
@@ -121,8 +126,10 @@ public class AllocationEngine {
         workings.add("  Results hash (SHA-256 over the ordered decision list): " + resultsHash);
 
         List<Decision> decisions = rows.stream().map(Row::toDecision).toList();
-        return new Result(decisions, String.join("\n", workings), resultsHash, allottedCount, waitlisted,
+        Result result = new Result(decisions, String.join("\n", workings), resultsHash, allottedCount, waitlisted,
                 notSelected, excluded, vacantAfterSpill, eligible.size());
+        log.debug("FairHome : AllocationEngine : in method run : END");
+        return result;
     }
 
     /**
@@ -130,6 +137,7 @@ public class AllocationEngine {
      * with the reason, never dropped silently.
      */
     private boolean screen(Row row, RuleSetDocument rules, LocalDate drawDate) {
+        log.debug("FairHome : AllocationEngine : in method screen : START");
         Application application = row.application;
 
         if (!application.getStatus().isEligibleForDraw()) {
@@ -140,6 +148,7 @@ public class AllocationEngine {
             if (application.getStatusNote() != null && !application.getStatusNote().isBlank()) {
                 row.trace.add("Note on file: " + application.getStatusNote());
             }
+            log.debug("FairHome : AllocationEngine : in method screen : END");
             return false;
         }
 
@@ -151,6 +160,7 @@ public class AllocationEngine {
             row.trace.add("Excluded on age: " + age + " years on " + DATE.format(drawDate)
                     + ", outside the published band of " + rules.eligibility().minAgeYears() + " to "
                     + rules.eligibility().maxAgeYears() + ".");
+            log.debug("FairHome : AllocationEngine : in method screen : END");
             return false;
         }
 
@@ -161,6 +171,7 @@ public class AllocationEngine {
                     + " does not fall inside any published income category.");
             row.trace.add("Excluded on income: " + money(application.getAnnualIncome())
                     + " matches none of the published bands.");
+            log.debug("FairHome : AllocationEngine : in method screen : END");
             return false;
         }
 
@@ -172,6 +183,7 @@ public class AllocationEngine {
                 + " falls in the " + category.code() + " band (" + category.label() + ", "
                 + money(category.incomeMin()) + (category.incomeMax() == null ? " and above"
                 : " to " + money(category.incomeMax())) + ").");
+        log.debug("FairHome : AllocationEngine : in method screen : END");
         return true;
     }
 
@@ -183,6 +195,7 @@ public class AllocationEngine {
      * command line tool, which is the difference between "trust our jar" and "here, verify it".
      */
     private void assignLotteryOrder(RuleSetDocument rules, List<Row> eligible) {
+        log.debug("FairHome : AllocationEngine : in method assignLotteryOrder : START");
         String seed = rules.draw().seed();
         for (Row row : eligible) {
             row.token = Hashes.sha256Hex(seed + ":" + row.application.getApplicationNumber());
@@ -193,9 +206,11 @@ public class AllocationEngine {
         for (Row row : eligible) {
             row.globalRank = rank++;
         }
+        log.debug("FairHome : AllocationEngine : in method assignLotteryOrder : END");
     }
 
     private Map<String, List<Row>> groupByCategory(RuleSetDocument rules, List<Row> eligible) {
+        log.debug("FairHome : AllocationEngine : in method groupByCategory : START");
         Map<String, List<Row>> byCategory = new LinkedHashMap<>();
         for (RuleSetDocument.Category category : rules.categories()) {
             byCategory.put(category.code(), new ArrayList<>());
@@ -217,6 +232,7 @@ public class AllocationEngine {
                     + " scheme-wide and position " + row.rankInCategory + " of " + row.categoryCount
                     + " inside " + row.category.code() + ".");
         }
+        log.debug("FairHome : AllocationEngine : in method groupByCategory : END");
         return byCategory;
     }
 
@@ -229,6 +245,7 @@ public class AllocationEngine {
      * categories appear in the published rule book.
      */
     private Map<String, Integer> divideSeats(RuleSetDocument rules, List<String> workings) {
+        log.debug("FairHome : AllocationEngine : in method divideSeats : START");
         workings.add("Step 3 - dividing " + rules.totalFlats() + " flats between income categories");
 
         Map<String, Integer> seats = new LinkedHashMap<>();
@@ -260,6 +277,7 @@ public class AllocationEngine {
         }
         seats.forEach((code, count) -> workings.add("  Final: " + code + " gets " + count + " flats"));
         workings.add("");
+        log.debug("FairHome : AllocationEngine : in method divideSeats : END");
         return seats;
     }
 
@@ -273,10 +291,12 @@ public class AllocationEngine {
      */
     private int fillCategory(RuleSetDocument rules, RuleSetDocument.Category category, List<Row> pool,
                              int seats, List<Row> allotted, List<String> workings) {
+        log.debug("FairHome : AllocationEngine : in method fillCategory : START");
         workings.add("  " + category.code() + " - " + seats + " flats, " + pool.size()
                 + " applications in the draw");
 
         if (seats == 0) {
+            log.debug("FairHome : AllocationEngine : in method fillCategory : END");
             return 0;
         }
 
@@ -375,6 +395,7 @@ public class AllocationEngine {
                         + row.rankInCategory + ".");
             }
         }
+        log.debug("FairHome : AllocationEngine : in method fillCategory : END");
         return filled;
     }
 
@@ -387,11 +408,13 @@ public class AllocationEngine {
     private int spillLeftoverSeats(RuleSetDocument rules, List<Row> eligible,
                                    Map<String, Integer> vacantByCategory, List<Row> allotted,
                                    List<String> workings) {
+        log.debug("FairHome : AllocationEngine : in method spillLeftoverSeats : START");
         int vacant = vacantByCategory.values().stream().mapToInt(Integer::intValue).sum();
         workings.add("Step 5 - seats no category could fill");
         if (vacant == 0) {
             workings.add("  Every category filled its seats, so nothing needed redistributing.");
             workings.add("");
+            log.debug("FairHome : AllocationEngine : in method spillLeftoverSeats : END");
             return 0;
         }
         workings.add("  " + vacant + " seat(s) unfilled: " + vacantByCategory);
@@ -400,6 +423,7 @@ public class AllocationEngine {
             workings.add("  The published rule is " + rules.spill().unfilledCategorySeats()
                     + ", so these flats stay unallotted.");
             workings.add("");
+            log.debug("FairHome : AllocationEngine : in method spillLeftoverSeats : END");
             return vacant;
         }
 
@@ -426,11 +450,14 @@ public class AllocationEngine {
         }
         workings.add("  " + granted + " of " + vacant + " redistributed seat(s) allotted.");
         workings.add("");
-        return vacant - granted;
+        int result = vacant - granted;
+        log.debug("FairHome : AllocationEngine : in method spillLeftoverSeats : END");
+        return result;
     }
 
     /** Allotment serials run category by category, and inside a category quota by quota. */
     private void assignSeatNumbers(RuleSetDocument rules, List<Row> allotted) {
+        log.debug("FairHome : AllocationEngine : in method assignSeatNumbers : START");
         List<String> poolOrder = new ArrayList<>();
         for (RuleSetDocument.Reservation reservation : safe(rules.reservations())) {
             poolOrder.add(reservation.code());
@@ -450,6 +477,7 @@ public class AllocationEngine {
             row.seatNumber = seat++;
             row.trace.add("Allotment serial " + row.seatNumber + " of " + allotted.size() + ".");
         }
+        log.debug("FairHome : AllocationEngine : in method assignSeatNumbers : END");
     }
 
     /**
@@ -460,6 +488,7 @@ public class AllocationEngine {
      */
     private int buildWaitlists(RuleSetDocument rules, Map<String, List<Row>> byCategory,
                               Map<String, Integer> categorySeats, List<String> workings) {
+        log.debug("FairHome : AllocationEngine : in method buildWaitlists : START");
         workings.add("Step 6 - waiting lists");
         BigDecimal percent = rules.waitlist().percentOfCategorySeats();
         int total = 0;
@@ -494,11 +523,13 @@ public class AllocationEngine {
                     + "% of " + seats + " seats, rounded up), " + position + " place(s) filled");
         }
         workings.add("");
+        log.debug("FairHome : AllocationEngine : in method buildWaitlists : END");
         return total;
     }
 
     /** Everyone still without an outcome is told where they stood and what it would have taken. */
     private void finishNotSelected(Map<String, List<Row>> byCategory, List<String> workings) {
+        log.debug("FairHome : AllocationEngine : in method finishNotSelected : START");
         for (Map.Entry<String, List<Row>> entry : byCategory.entrySet()) {
             List<Row> pool = entry.getValue();
             int lastAllottedRank = pool.stream()
@@ -533,6 +564,7 @@ public class AllocationEngine {
             }
         }
         workings.add("");
+        log.debug("FairHome : AllocationEngine : in method finishNotSelected : END");
     }
 
     /**
@@ -542,6 +574,7 @@ public class AllocationEngine {
      * check it has not been edited since, without needing access to the database.
      */
     private String hashResults(List<Row> rows) {
+        log.debug("FairHome : AllocationEngine : in method hashResults : START");
         List<String> lines = rows.stream()
                 .map(r -> r.application.getApplicationNumber() + "|" + r.outcome + "|"
                         + nullSafe(r.categoryCode) + "|" + nullSafe(r.poolCode) + "|"
@@ -549,7 +582,9 @@ public class AllocationEngine {
                         + nullSafe(r.rankInCategory) + "|" + nullSafe(r.token))
                 .sorted()
                 .toList();
-        return Hashes.sha256Hex(String.join("\n", lines));
+        String hash = Hashes.sha256Hex(String.join("\n", lines));
+        log.debug("FairHome : AllocationEngine : in method hashResults : END");
+        return hash;
     }
 
     private static <T> List<T> safe(List<T> list) {
@@ -591,28 +626,36 @@ public class AllocationEngine {
         }
 
         private void exclude(String reasonCode, String reasonText) {
+            log.debug("FairHome : AllocationEngine : in method exclude : START");
             this.outcome = Outcome.EXCLUDED;
             this.reasonCode = reasonCode;
             this.reasonText = reasonText;
+            log.debug("FairHome : AllocationEngine : in method exclude : END");
         }
 
         private void allot(String categoryCode, String poolCode, int rankInPool) {
+            log.debug("FairHome : AllocationEngine : in method allot : START");
             this.outcome = Outcome.ALLOTTED;
             this.categoryCode = categoryCode;
             this.poolCode = poolCode;
             this.rankInPool = rankInPool;
+            log.debug("FairHome : AllocationEngine : in method allot : END");
         }
 
         private Decision toDecision() {
-            return new Decision(application.getId(), application.getApplicationNumber(),
+            log.debug("FairHome : AllocationEngine : in method toDecision : START");
+            Decision decision = new Decision(application.getId(), application.getApplicationNumber(),
                     application.getFullName(), outcome, categoryCode, poolCode, rankInPool,
                     rankInCategory == 0 ? null : rankInCategory,
                     categoryCount == 0 ? null : categoryCount,
                     seatNumber, waitlistPosition, token == null ? "not-drawn" : token,
                     reasonCode, reasonText, numberedTrace());
+            log.debug("FairHome : AllocationEngine : in method toDecision : END");
+            return decision;
         }
 
         private String numberedTrace() {
+            log.debug("FairHome : AllocationEngine : in method numberedTrace : START");
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < trace.size(); i++) {
                 if (i > 0) {
@@ -620,7 +663,9 @@ public class AllocationEngine {
                 }
                 sb.append(i + 1).append(". ").append(trace.get(i));
             }
-            return sb.toString();
+            String result = sb.toString();
+            log.debug("FairHome : AllocationEngine : in method numberedTrace : END");
+            return result;
         }
     }
 
