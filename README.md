@@ -106,7 +106,7 @@ java -jar target/fairhome.jar
 
 Windows: `mvnw.cmd clean install`, then the same `java -jar`.
 
-Open [http://localhost:8080](http://localhost:8080).
+Access UI here : [http://localhost:8080](http://localhost:8080) .
 
 On first start the process:
 
