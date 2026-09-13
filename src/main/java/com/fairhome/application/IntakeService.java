@@ -9,6 +9,8 @@ import com.fairhome.rules.RuleSetService;
 import com.fairhome.support.Hashes;
 import com.fairhome.support.NameMatching;
 import com.fairhome.support.NationalId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +35,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @Service
 public class IntakeService {
+
+    private static final Logger log = LoggerFactory.getLogger(IntakeService.class);
 
     /**
      * Two people submitting the same national ID at the same instant could both pass a check-then-write
@@ -71,22 +75,31 @@ public class IntakeService {
 
     @Transactional
     public Receipt submitOnline(ApplicationForm form) {
-        return intake(form, Channel.ONLINE, "public-form");
+        log.debug("FairHome : IntakeService : in method submitOnline : START");
+        Receipt receipt = intake(form, Channel.ONLINE, "public-form");
+        log.debug("FairHome : IntakeService : in method submitOnline : END");
+        return receipt;
     }
 
     @Transactional
     public Receipt recordOffline(ApplicationForm form, String officer) {
+        log.debug("FairHome : IntakeService : in method recordOffline : START");
         if (form.getRecordedBy() == null || form.getRecordedBy().isBlank()) {
+            log.warn("FairHome : IntakeService : in method recordOffline : validation problem : recordedBy is missing");
             throw new IntakeException("recordedBy", "Please record which officer is entering this form");
         }
         if (form.getPaperReference() == null || form.getPaperReference().isBlank()) {
+            log.warn("FairHome : IntakeService : in method recordOffline : validation problem : paperReference is missing");
             throw new IntakeException("paperReference",
                     "Please record the paper form or counter receipt number so the entry can be traced back");
         }
-        return intake(form, Channel.OFFLINE, officer);
+        Receipt receipt = intake(form, Channel.OFFLINE, officer);
+        log.debug("FairHome : IntakeService : in method recordOffline : END");
+        return receipt;
     }
 
     private Receipt intake(ApplicationForm form, Channel channel, String actor) {
+        log.debug("FairHome : IntakeService : in method intake : START");
         RuleSetDocument rules = ruleSetService.activeRules();
 
         String canonicalId = NationalId.canonicalise(form.getNationalId());
@@ -139,6 +152,7 @@ public class IntakeService {
         }
 
         if (!errors.isEmpty()) {
+            log.warn("FairHome : IntakeService : in method intake : validation problems : {}", errors);
             throw new IntakeException(errors);
         }
 
@@ -156,6 +170,8 @@ public class IntakeService {
                 DedupService.Candidate first = candidates.stream()
                         .filter(c -> c.matchType() == MatchType.EXACT_NATIONAL_ID)
                         .findFirst().orElseThrow();
+                log.warn("FairHome : IntakeService : in method intake : blocked duplicate national ID {} on {} channel",
+                        NationalId.masked(canonicalId), channel);
                 auditService.record("INTAKE_BLOCKED_DUPLICATE", first.existing().getApplicationNumber(), actor,
                         "Blocked a repeat submission for national ID "
                                 + NationalId.masked(canonicalId) + " on the " + channel + " channel.");
@@ -175,6 +191,8 @@ public class IntakeService {
             }
 
             Application saved = persist(application);
+            log.info("FairHome : IntakeService : in method intake : application saved : {}",
+                    saved.getApplicationNumber());
             List<DuplicateFlag> raised = dedupService.raiseFlags(saved, candidates);
 
             auditService.record(channel == Channel.ONLINE ? "APPLICATION_SUBMITTED_ONLINE"
@@ -194,8 +212,10 @@ public class IntakeService {
                 notices.add(candidate.matchType().getLabel() + " - " + candidate.evidence());
             }
 
-            return new Receipt(saved.getApplicationNumber(), saved.getStatusLookupKey(), saved.getStatus(),
+            Receipt receipt = new Receipt(saved.getApplicationNumber(), saved.getStatusLookupKey(), saved.getStatus(),
                     category == null ? "unclassified" : category.code(), !holding.isEmpty(), notices);
+            log.debug("FairHome : IntakeService : in method intake : END");
+            return receipt;
         } finally {
             intakeLock.unlock();
         }
@@ -206,19 +226,26 @@ public class IntakeService {
      * application number can be derived from it before the row is flushed.
      */
     private Application persist(Application application) {
+        log.debug("FairHome : IntakeService : in method persist : START");
         application.setApplicationNumber("PENDING");
         Application saved = applications.save(application);
         saved.setApplicationNumber(applicationNumberFor(saved.getId(), application.getSubmittedAt()));
-        return applications.saveAndFlush(saved);
+        Application flushed = applications.saveAndFlush(saved);
+        log.debug("FairHome : IntakeService : in method persist : END");
+        return flushed;
     }
 
     private String applicationNumberFor(Long id, Instant submittedAt) {
+        log.debug("FairHome : IntakeService : in method applicationNumberFor : START");
         int year = submittedAt.atZone(zone).getYear();
-        return String.format(Locale.ROOT, "FH-%d-%06d", year, id);
+        String number = String.format(Locale.ROOT, "FH-%d-%06d", year, id);
+        log.debug("FairHome : IntakeService : in method applicationNumberFor : END");
+        return number;
     }
 
     private Application toEntity(ApplicationForm form, Channel channel, String canonicalId,
                                  LocalDate applicationDate) {
+        log.debug("FairHome : IntakeService : in method toEntity : START");
         Application application = new Application();
         application.setChannel(channel);
         application.setSubmittedAt(applicationDate.atStartOfDay(zone).toInstant());
@@ -243,6 +270,7 @@ public class IntakeService {
         application.setExServiceman(form.isExServiceman());
         application.setFirstTimeHomeBuyer(form.isFirstTimeHomeBuyer());
         application.setStatusLookupKey(generateLookupKey());
+        log.debug("FairHome : IntakeService : in method toEntity : END");
         return application;
     }
 
@@ -251,10 +279,13 @@ public class IntakeService {
      * public status page, so an applicant can read their own placement and nobody else's.
      */
     private String generateLookupKey() {
+        log.debug("FairHome : IntakeService : in method generateLookupKey : START");
         byte[] bytes = new byte[6];
         random.nextBytes(bytes);
-        return Hashes.sha256Hex(java.util.HexFormat.of().formatHex(bytes))
+        String key = Hashes.sha256Hex(java.util.HexFormat.of().formatHex(bytes))
                 .substring(0, 8).toUpperCase(Locale.ROOT);
+        log.debug("FairHome : IntakeService : in method generateLookupKey : END");
+        return key;
     }
 
     private String blankToNull(String value) {
@@ -263,6 +294,7 @@ public class IntakeService {
 
     @Transactional
     public void withdraw(String applicationNumber, String actor, String reason) {
+        log.debug("FairHome : IntakeService : in method withdraw : START");
         Application application = applications.findByApplicationNumber(applicationNumber)
                 .orElseThrow(() -> new IllegalArgumentException("No application " + applicationNumber));
         application.setStatus(ApplicationStatus.WITHDRAWN);
@@ -270,5 +302,8 @@ public class IntakeService {
         applications.save(application);
         auditService.record("APPLICATION_WITHDRAWN", applicationNumber, actor,
                 "Reason: " + (reason == null ? "none" : reason));
+        log.info("FairHome : IntakeService : in method withdraw : application withdrawn : {}",
+                applicationNumber);
+        log.debug("FairHome : IntakeService : in method withdraw : END");
     }
 }

@@ -20,6 +20,8 @@ import com.fairhome.rules.RuleSetService;
 import com.fairhome.rules.RuleSetVersion;
 import com.fairhome.support.Hashes;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,6 +50,8 @@ import java.util.Map;
 @RequestMapping("/api")
 public class ApiController {
 
+    private static final Logger log = LoggerFactory.getLogger(ApiController.class);
+
     private final IntakeService intakeService;
     private final ApplicationRepository applications;
     private final DedupService dedupService;
@@ -73,25 +77,40 @@ public class ApiController {
 
     @PostMapping("/applications")
     public ResponseEntity<IntakeService.Receipt> register(@Valid @RequestBody ApplicationForm form) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(intakeService.submitOnline(form));
+        log.debug("FairHome : ApiController : in method register : START");
+        IntakeService.Receipt receipt = intakeService.submitOnline(form);
+        log.info("FairHome : ApiController : in method register : application submitted : {}",
+                receipt.applicationNumber());
+        ResponseEntity<IntakeService.Receipt> response = ResponseEntity.status(HttpStatus.CREATED).body(receipt);
+        log.debug("FairHome : ApiController : in method register : END");
+        return response;
     }
 
     @PostMapping("/admin/applications/offline")
     public ResponseEntity<IntakeService.Receipt> recordOffline(@Valid @RequestBody ApplicationForm form) {
+        log.debug("FairHome : ApiController : in method recordOffline : START");
         IntakeService.Receipt receipt = intakeService.recordOffline(form,
                 form.getRecordedBy() == null ? CurrentOfficer.name(properties)
                         : form.getRecordedBy());
-        return ResponseEntity.status(HttpStatus.CREATED).body(receipt);
+        log.info("FairHome : ApiController : in method recordOffline : application submitted : {}",
+                receipt.applicationNumber());
+        ResponseEntity<IntakeService.Receipt> response = ResponseEntity.status(HttpStatus.CREATED).body(receipt);
+        log.debug("FairHome : ApiController : in method recordOffline : END");
+        return response;
     }
 
     /** The applicant-facing "where do I stand and why" endpoint. */
     @GetMapping("/applications/{applicationNumber}/status")
     public ResponseEntity<Map<String, Object>> status(@PathVariable String applicationNumber,
                                                       @RequestParam String referenceCode) {
+        log.debug("FairHome : ApiController : in method status : START");
         Application application = applications.findByApplicationNumber(applicationNumber).orElse(null);
         if (application == null || !application.getStatusLookupKey().equalsIgnoreCase(referenceCode)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+            log.warn("FairHome : ApiController : in method status : not found : {}", applicationNumber);
+            ResponseEntity<Map<String, Object>> response = ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
                     "error", "No application matches that number and reference code."));
+            log.debug("FairHome : ApiController : in method status : END");
+            return response;
         }
 
         RuleSetDocument rules = ruleSetService.activeRules();
@@ -115,7 +134,9 @@ public class ApiController {
         if (published == null) {
             body.put("draw", Map.of("published", false,
                     "message", "The draw has not been published yet."));
-            return ResponseEntity.ok(body);
+            ResponseEntity<Map<String, Object>> response = ResponseEntity.ok(body);
+            log.debug("FairHome : ApiController : in method status : END");
+            return response;
         }
 
         Allocation allocation = drawService.allocationFor(published.getId(), application.getId())
@@ -142,11 +163,14 @@ public class ApiController {
             draw.put("howThisWasDecided", List.of(allocation.getExplanationLines()));
         }
         body.put("draw", draw);
-        return ResponseEntity.ok(body);
+        ResponseEntity<Map<String, Object>> response = ResponseEntity.ok(body);
+        log.debug("FairHome : ApiController : in method status : END");
+        return response;
     }
 
     @GetMapping("/rules")
     public Map<String, Object> activeRules() {
+        log.debug("FairHome : ApiController : in method activeRules : START");
         RuleSetVersion version = ruleSetService.activeVersion();
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("version", version.getVersion());
@@ -155,12 +179,14 @@ public class ApiController {
         body.put("publishedAt", version.getPublishedAt());
         body.put("availablePredicates", ApplicantPredicates.descriptions());
         body.put("rules", ruleSetService.parse(version.getJson()));
+        log.debug("FairHome : ApiController : in method activeRules : END");
         return body;
     }
 
     @GetMapping("/rules/history")
     public List<Map<String, Object>> ruleHistory() {
-        return ruleSetService.history().stream().map(version -> {
+        log.debug("FairHome : ApiController : in method ruleHistory : START");
+        List<Map<String, Object>> history = ruleSetService.history().stream().map(version -> {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("version", version.getVersion());
             item.put("versionLabel", version.getVersionLabel());
@@ -171,10 +197,13 @@ public class ApiController {
             item.put("active", version.isActive());
             return item;
         }).toList();
+        log.debug("FairHome : ApiController : in method ruleHistory : END");
+        return history;
     }
 
     @PutMapping("/admin/rules")
     public Map<String, Object> publishRules(@RequestBody Map<String, Object> request) {
+        log.debug("FairHome : ApiController : in method publishRules : START");
         Object rules = request.get("rules");
         if (rules == null) {
             throw new IllegalArgumentException("Send the rule book under a \"rules\" property.");
@@ -184,24 +213,32 @@ public class ApiController {
                 ruleSetService.parse(toJson(rules)));
         RuleSetVersion published = ruleSetService.publish(json,
                 CurrentOfficer.name(properties), note);
+        log.info("FairHome : ApiController : in method publishRules : published rules : version {}",
+                published.getVersion());
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("version", published.getVersion());
         body.put("contentHash", published.getContentHash());
         body.put("publishedAt", published.getPublishedAt());
+        log.debug("FairHome : ApiController : in method publishRules : END");
         return body;
     }
 
     private String toJson(Object value) {
+        log.debug("FairHome : ApiController : in method toJson : START");
         try {
-            return objectMapper.writeValueAsString(value);
+            String json = objectMapper.writeValueAsString(value);
+            log.debug("FairHome : ApiController : in method toJson : END");
+            return json;
         } catch (JacksonException e) {
+            log.error("FairHome : ApiController : in method toJson : error : {}", e.getMessage(), e);
             throw new IllegalArgumentException("The rules property is not valid JSON", e);
         }
     }
 
     @GetMapping("/admin/duplicates")
     public List<Map<String, Object>> duplicateQueue() {
-        return dedupService.openQueue().stream().map(flag -> {
+        log.debug("FairHome : ApiController : in method duplicateQueue : START");
+        List<Map<String, Object>> queue = dedupService.openQueue().stream().map(flag -> {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("flagId", flag.getId());
             item.put("matchType", flag.getMatchType());
@@ -213,11 +250,14 @@ public class ApiController {
             item.put("detectedAt", flag.getDetectedAt());
             return item;
         }).toList();
+        log.debug("FairHome : ApiController : in method duplicateQueue : END");
+        return queue;
     }
 
     @PostMapping("/admin/duplicates/{flagId}/resolve")
     public Map<String, Object> resolveDuplicate(@PathVariable Long flagId,
                                                 @RequestBody Map<String, String> request) {
+        log.debug("FairHome : ApiController : in method resolveDuplicate : START");
         DuplicateResolution decision = DuplicateResolution.valueOf(
                 request.getOrDefault("decision", "OPEN"));
         DuplicateFlag resolved = dedupService.resolve(flagId, decision, request.get("keep"),
@@ -229,6 +269,7 @@ public class ApiController {
         body.put("outcome", resolved.getOutcomeDescription());
         body.put("keptApplication", resolved.getKeptApplicationNumber());
         body.put("resolvedAt", resolved.getResolvedAt());
+        log.debug("FairHome : ApiController : in method resolveDuplicate : END");
         return body;
     }
 
@@ -236,37 +277,56 @@ public class ApiController {
     public ResponseEntity<Map<String, Object>> runDraw(
             @RequestParam(defaultValue = "DRY_RUN") DrawMode mode,
             @RequestParam(required = false) String note) {
+        log.debug("FairHome : ApiController : in method runDraw : START");
         DrawRun run = drawService.run(mode, CurrentOfficer.name(properties), note);
-        return ResponseEntity.status(HttpStatus.CREATED).body(describeRun(run));
+        log.info("FairHome : ApiController : in method runDraw : draw completed : run {} mode {}",
+                run.getId(), mode);
+        ResponseEntity<Map<String, Object>> response = ResponseEntity.status(HttpStatus.CREATED)
+                .body(describeRun(run));
+        log.debug("FairHome : ApiController : in method runDraw : END");
+        return response;
     }
 
     @GetMapping("/draws")
     public List<Map<String, Object>> draws() {
-        return drawService.allRuns().stream().map(this::describeRun).toList();
+        log.debug("FairHome : ApiController : in method draws : START");
+        List<Map<String, Object>> runs = drawService.allRuns().stream().map(this::describeRun).toList();
+        log.debug("FairHome : ApiController : in method draws : END");
+        return runs;
     }
 
     @GetMapping("/draws/{runId}")
     public Map<String, Object> draw(@PathVariable Long runId) {
+        log.debug("FairHome : ApiController : in method draw : START");
         DrawRun run = drawService.findRun(runId)
                 .orElseThrow(() -> new IllegalArgumentException("No draw run " + runId));
         Map<String, Object> body = describeRun(run);
         body.put("categorySummary", drawService.categorySummary(runId));
         body.put("workings", List.of(run.getQuotaWorkings().split("\n")));
+        log.debug("FairHome : ApiController : in method draw : END");
         return body;
     }
 
     @PostMapping("/admin/draws/{runId}/publish")
     public Map<String, Object> publish(@PathVariable Long runId) {
-        return describeRun(drawService.publish(runId, CurrentOfficer.name(properties)));
+        log.debug("FairHome : ApiController : in method publish : START");
+        DrawRun run = drawService.publish(runId, CurrentOfficer.name(properties));
+        log.info("FairHome : ApiController : in method publish : published draw run : {}", runId);
+        Map<String, Object> body = describeRun(run);
+        log.debug("FairHome : ApiController : in method publish : END");
+        return body;
     }
 
     /** The public result list, available only once a final draw has been published. */
     @GetMapping("/results")
     public ResponseEntity<Map<String, Object>> results() {
+        log.debug("FairHome : ApiController : in method results : START");
         DrawRun published = drawService.runVisibleToApplicants().orElse(null);
         if (published == null) {
-            return ResponseEntity.ok(Map.of("published", false,
+            ResponseEntity<Map<String, Object>> response = ResponseEntity.ok(Map.of("published", false,
                     "message", "No draw result has been published yet."));
+            log.debug("FairHome : ApiController : in method results : END");
+            return response;
         }
         Map<String, Object> body = describeRun(published);
         body.put("categorySummary", drawService.categorySummary(published.getId()));
@@ -282,12 +342,15 @@ public class ApiController {
                     item.put("lotteryToken", a.getLotteryToken());
                     return item;
                 }).toList());
-        return ResponseEntity.ok(body);
+        ResponseEntity<Map<String, Object>> response = ResponseEntity.ok(body);
+        log.debug("FairHome : ApiController : in method results : END");
+        return response;
     }
 
     /** Recomputes one lottery position from the published seed, for independent verification. */
     @GetMapping("/verify")
     public Map<String, Object> verify(@RequestParam String applicationNumber) {
+        log.debug("FairHome : ApiController : in method verify : START");
         RuleSetDocument rules = ruleSetService.activeRules();
         String input = rules.draw().seed() + ":" + applicationNumber;
         Map<String, Object> body = new LinkedHashMap<>();
@@ -296,15 +359,20 @@ public class ApiController {
         body.put("input", input);
         body.put("lotteryToken", Hashes.sha256Hex(input));
         body.put("shellEquivalent", "printf '%s' \"" + input + "\" | sha256sum");
+        log.debug("FairHome : ApiController : in method verify : END");
         return body;
     }
 
     @GetMapping("/admin/audit/verify")
     public AuditService.ChainCheck verifyAuditChain() {
-        return auditService.verifyChain();
+        log.debug("FairHome : ApiController : in method verifyAuditChain : START");
+        AuditService.ChainCheck check = auditService.verifyChain();
+        log.debug("FairHome : ApiController : in method verifyAuditChain : END");
+        return check;
     }
 
     private Map<String, Object> describeRun(DrawRun run) {
+        log.debug("FairHome : ApiController : in method describeRun : START");
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("id", run.getId());
         body.put("mode", run.getMode());
@@ -323,6 +391,7 @@ public class ApiController {
         body.put("resultsHash", run.getResultsHash());
         body.put("published", run.isPublished());
         body.put("publishedAt", run.getPublishedAt());
+        log.debug("FairHome : ApiController : in method describeRun : END");
         return body;
     }
 }

@@ -1,5 +1,8 @@
 package com.fairhome.support;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
@@ -17,6 +20,8 @@ import java.util.Locale;
  */
 public final class Display {
 
+    private static final Logger log = LoggerFactory.getLogger(Display.class);
+
     private static final DateTimeFormatter DATE =
             DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH);
     private static final DateTimeFormatter DATE_TIME =
@@ -28,28 +33,44 @@ public final class Display {
     }
 
     public static String date(Instant instant) {
-        return instant == null ? "-" : DATE.format(instant.atZone(ZoneId.systemDefault()));
+        log.debug("FairHome : Display : in method date : START");
+        String result = instant == null ? "-" : DATE.format(instant.atZone(ZoneId.systemDefault()));
+        log.debug("FairHome : Display : in method date : END");
+        return result;
     }
 
     public static String date(LocalDate date) {
-        return date == null ? "-" : DATE.format(date);
+        log.debug("FairHome : Display : in method date : START");
+        String result = date == null ? "-" : DATE.format(date);
+        log.debug("FairHome : Display : in method date : END");
+        return result;
     }
 
     public static String dateTime(Instant instant) {
-        return instant == null ? "-" : DATE_TIME.format(instant.atZone(ZoneId.systemDefault()));
+        log.debug("FairHome : Display : in method dateTime : START");
+        String result = instant == null ? "-" : DATE_TIME.format(instant.atZone(ZoneId.systemDefault()));
+        log.debug("FairHome : Display : in method dateTime : END");
+        return result;
     }
 
     public static String timestamp(Instant instant) {
-        return instant == null ? "-" : DATE_TIME_SECONDS.format(instant.atZone(ZoneId.systemDefault()));
+        log.debug("FairHome : Display : in method timestamp : START");
+        String result = instant == null ? "-" : DATE_TIME_SECONDS.format(instant.atZone(ZoneId.systemDefault()));
+        log.debug("FairHome : Display : in method timestamp : END");
+        return result;
     }
 
     public static String rupees(BigDecimal amount) {
+        log.debug("FairHome : Display : in method rupees : START");
         if (amount == null) {
+            log.debug("FairHome : Display : in method rupees : END");
             return "—";
         }
         NumberFormat format = NumberFormat.getIntegerInstance(Locale.ENGLISH);
         format.setGroupingUsed(true);
         format.setMaximumFractionDigits(0);
-        return "₹" + format.format(amount.setScale(0, RoundingMode.HALF_UP));
+        String result = "₹" + format.format(amount.setScale(0, RoundingMode.HALF_UP));
+        log.debug("FairHome : Display : in method rupees : END");
+        return result;
     }
 }

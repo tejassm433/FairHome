@@ -79,14 +79,18 @@ public class DemoDataSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        log.debug("FairHome : DemoDataSeeder : in method run : START");
         FairHomeProperties.DemoData config = properties.getDemoData();
         if (!config.isEnabled()) {
-            log.info("Demo data generation is switched off (fairhome.demo-data.enabled=false).");
+            log.info("FairHome : DemoDataSeeder : in method run : demo data generation is switched off");
+            log.debug("FairHome : DemoDataSeeder : in method run : END");
             return;
         }
         long existing = applications.count();
         if (existing > 0) {
-            log.info("Skipping demo data: {} applications already on file.", existing);
+            log.info("FairHome : DemoDataSeeder : in method run : skipping demo data : {} applications already on file",
+                    existing);
+            log.debug("FairHome : DemoDataSeeder : in method run : END");
             return;
         }
 
@@ -108,7 +112,8 @@ public class DemoDataSeeder implements ApplicationRunner {
             rejected += counts.rejected;
 
             if ((i + 1) % 500 == 0) {
-                log.info("Demo intake progress: {} of {}", i + 1, target);
+                log.info("FairHome : DemoDataSeeder : in method run : demo intake progress : {} of {}",
+                        i + 1, target);
             }
         }
 
@@ -123,22 +128,30 @@ public class DemoDataSeeder implements ApplicationRunner {
             rejected += counts.rejected;
         }
 
-        log.info("Demo data ready in {} ms: {} applications recorded ({} held for duplicate review, "
-                        + "{} refused at intake), {} distinct people, {} planted review duplicates.",
+        log.info("FairHome : DemoDataSeeder : in method run : demo data ready in {} ms : {} applications recorded "
+                        + "({} held for duplicate review, {} refused at intake), {} distinct people, "
+                        + "{} planted review duplicates",
                 System.currentTimeMillis() - start, accepted, held, rejected, people.size(),
                 reviewDuplicates);
+        log.debug("FairHome : DemoDataSeeder : in method run : END");
     }
 
     private IntakeCounts submit(Person person, Random random, int offlinePercent) {
+        log.debug("FairHome : DemoDataSeeder : in method submit : START");
         boolean offline = random.nextInt(100) < offlinePercent;
         ApplicationForm form = person.toForm(random, offline);
         try {
             IntakeService.Receipt receipt = offline
                     ? intakeService.recordOffline(form, "demo-seed")
                     : intakeService.submitOnline(form);
-            return new IntakeCounts(1, receipt.heldForReview() ? 1 : 0, 0);
+            IntakeCounts counts = new IntakeCounts(1, receipt.heldForReview() ? 1 : 0, 0);
+            log.debug("FairHome : DemoDataSeeder : in method submit : END");
+            return counts;
         } catch (IntakeException e) {
-            return new IntakeCounts(0, 0, 1);
+            log.warn("FairHome : DemoDataSeeder : in method submit : intake refused : {}", e.getMessage());
+            IntakeCounts counts = new IntakeCounts(0, 0, 1);
+            log.debug("FairHome : DemoDataSeeder : in method submit : END");
+            return counts;
         }
     }
 
@@ -152,6 +165,7 @@ public class DemoDataSeeder implements ApplicationRunner {
                           String ward, String street, int houseNumber) {
 
         static Person random(Random random) {
+            log.debug("FairHome : DemoDataSeeder : in method random : START");
             String first = FIRST_NAMES[random.nextInt(FIRST_NAMES.length)];
             String last = LAST_NAMES[random.nextInt(LAST_NAMES.length)];
             Gender gender = random.nextInt(100) < 46 ? Gender.FEMALE
@@ -168,34 +182,42 @@ public class DemoDataSeeder implements ApplicationRunner {
 
             BigDecimal income = drawIncome(random);
 
-            return new Person(first, last, dob, gender, randomNationalId(random), phone, email, years,
+            Person person = new Person(first, last, dob, gender, randomNationalId(random), phone, email, years,
                     income, random.nextInt(1000) < 38, random.nextInt(1000) < 25,
                     WARDS[random.nextInt(WARDS.length)], STREETS[random.nextInt(STREETS.length)],
                     1 + random.nextInt(400));
+            log.debug("FairHome : DemoDataSeeder : in method random : END");
+            return person;
         }
 
         /** Skewed towards the lower bands, which is where the real demand in such a scheme sits. */
         private static BigDecimal drawIncome(Random random) {
+            log.debug("FairHome : DemoDataSeeder : in method drawIncome : START");
             int bucket = random.nextInt(100);
+            BigDecimal income;
             if (bucket < 34) {
-                return BigDecimal.valueOf(60000 + random.nextInt(240000));
+                income = BigDecimal.valueOf(60000 + random.nextInt(240000));
+            } else if (bucket < 71) {
+                income = BigDecimal.valueOf(300001 + random.nextInt(299999));
+            } else if (bucket < 94) {
+                income = BigDecimal.valueOf(600001 + random.nextInt(599999));
+            } else {
+                income = BigDecimal.valueOf(1200001 + random.nextInt(1500000));
             }
-            if (bucket < 71) {
-                return BigDecimal.valueOf(300001 + random.nextInt(299999));
-            }
-            if (bucket < 94) {
-                return BigDecimal.valueOf(600001 + random.nextInt(599999));
-            }
-            return BigDecimal.valueOf(1200001 + random.nextInt(1500000));
+            log.debug("FairHome : DemoDataSeeder : in method drawIncome : END");
+            return income;
         }
 
         private static String randomNationalId(Random random) {
+            log.debug("FairHome : DemoDataSeeder : in method randomNationalId : START");
             StringBuilder payload = new StringBuilder();
             payload.append(2 + random.nextInt(8));
             for (int i = 0; i < 10; i++) {
                 payload.append(random.nextInt(10));
             }
-            return payload + String.valueOf(Verhoeff.checkDigitFor(payload.toString()));
+            String id = payload + String.valueOf(Verhoeff.checkDigitFor(payload.toString()));
+            log.debug("FairHome : DemoDataSeeder : in method randomNationalId : END");
+            return id;
         }
 
         /**
@@ -203,6 +225,7 @@ public class DemoDataSeeder implements ApplicationRunner {
          * matches, so only the fuzzy name and date of birth check can catch this pair.
          */
         Person withMistypedId(Random random) {
+            log.debug("FairHome : DemoDataSeeder : in method withMistypedId : START");
             char[] digits = nationalId.toCharArray();
             int position = 1 + random.nextInt(10);
             char original = digits[position];
@@ -210,11 +233,14 @@ public class DemoDataSeeder implements ApplicationRunner {
             digits[position] = replacement;
             String payload = new String(digits, 0, 11);
             String retyped = payload + Verhoeff.checkDigitFor(payload);
-            return new Person(firstName, lastName, dateOfBirth, gender, retyped, phone, email,
+            Person person = new Person(firstName, lastName, dateOfBirth, gender, retyped, phone, email,
                     yearsInArea, income, differentlyAbled, exServiceman, ward, street, houseNumber);
+            log.debug("FairHome : DemoDataSeeder : in method withMistypedId : END");
+            return person;
         }
 
         ApplicationForm toForm(Random random, boolean offline) {
+            log.debug("FairHome : DemoDataSeeder : in method toForm : START");
             ApplicationForm form = new ApplicationForm();
 
             // Paper entries pick up honorifics and initials that the online form usually does not,
@@ -244,15 +270,21 @@ public class DemoDataSeeder implements ApplicationRunner {
                 form.setPaperReference("PF/2026/" + (10000 + random.nextInt(89999)));
                 form.setPaperSubmittedOn(LocalDate.of(2026, 1, 20).plusDays(random.nextInt(40)));
             }
+            log.debug("FairHome : DemoDataSeeder : in method toForm : END");
             return form;
         }
 
         /** Paper entries arrive with the ID grouped in fours, online ones usually do not. */
         private String formatId(String id, boolean offline, Random random) {
+            log.debug("FairHome : DemoDataSeeder : in method formatId : START");
+            String formatted;
             if (offline && random.nextInt(100) < 60) {
-                return id.substring(0, 4) + " " + id.substring(4, 8) + " " + id.substring(8);
+                formatted = id.substring(0, 4) + " " + id.substring(4, 8) + " " + id.substring(8);
+            } else {
+                formatted = id;
             }
-            return id;
+            log.debug("FairHome : DemoDataSeeder : in method formatId : END");
+            return formatted;
         }
     }
 }

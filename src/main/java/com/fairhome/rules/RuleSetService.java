@@ -45,27 +45,43 @@ public class RuleSetService {
 
     @Transactional
     public RuleSetVersion activeVersion() {
-        return repository.findByActiveTrue().orElseGet(this::installDefaultRuleSet);
+        log.debug("FairHome : RuleSetService : in method activeVersion : START");
+        RuleSetVersion version = repository.findByActiveTrue().orElseGet(this::installDefaultRuleSet);
+        log.debug("FairHome : RuleSetService : in method activeVersion : END");
+        return version;
     }
 
     public RuleSetDocument activeRules() {
-        return parse(activeVersion().getJson());
+        log.debug("FairHome : RuleSetService : in method activeRules : START");
+        RuleSetDocument rules = parse(activeVersion().getJson());
+        log.debug("FairHome : RuleSetService : in method activeRules : END");
+        return rules;
     }
 
     public RuleSetDocument rulesForVersion(int version) {
-        return repository.findByVersion(version)
+        log.debug("FairHome : RuleSetService : in method rulesForVersion : START");
+        RuleSetDocument rules = repository.findByVersion(version)
                 .map(v -> parse(v.getJson()))
                 .orElseThrow(() -> new IllegalArgumentException("No rule version " + version));
+        log.debug("FairHome : RuleSetService : in method rulesForVersion : END");
+        return rules;
     }
 
     public List<RuleSetVersion> history() {
-        return repository.findAllByOrderByVersionDesc();
+        log.debug("FairHome : RuleSetService : in method history : START");
+        List<RuleSetVersion> result = repository.findAllByOrderByVersionDesc();
+        log.debug("FairHome : RuleSetService : in method history : END");
+        return result;
     }
 
     public RuleSetDocument parse(String json) {
+        log.debug("FairHome : RuleSetService : in method parse : START");
         try {
-            return mapper.readValue(json, RuleSetDocument.class);
+            RuleSetDocument document = mapper.readValue(json, RuleSetDocument.class);
+            log.debug("FairHome : RuleSetService : in method parse : END");
+            return document;
         } catch (JacksonException e) {
+            log.error("FairHome : RuleSetService : in method parse : error : {}", e.getMessage(), e);
             throw new RuleValidationException(List.of("The rule file is not valid JSON: " + e.getMessage()));
         }
     }
@@ -77,15 +93,20 @@ public class RuleSetService {
      * identical rule books would hash differently and the hash would prove nothing.
      */
     public String canonicalise(RuleSetDocument document) {
+        log.debug("FairHome : RuleSetService : in method canonicalise : START");
         try {
-            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(document);
+            String canonical = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(document);
+            log.debug("FairHome : RuleSetService : in method canonicalise : END");
+            return canonical;
         } catch (JacksonException e) {
+            log.error("FairHome : RuleSetService : in method canonicalise : error : {}", e.getMessage(), e);
             throw new IllegalStateException("Cannot serialise rule set", e);
         }
     }
 
     @Transactional
     public RuleSetVersion publish(String json, String publishedBy, String changeNote) {
+        log.debug("FairHome : RuleSetService : in method publish : START");
         RuleSetDocument document = parse(json);
         validate(document);
 
@@ -95,6 +116,8 @@ public class RuleSetService {
         RuleSetVersion current = repository.findByActiveTrue().orElse(null);
         if (current != null) {
             if (current.getContentHash().equals(hash)) {
+                log.warn("FairHome : RuleSetService : in method publish : blocked duplicate : identical to active version {}",
+                        current.getVersion());
                 throw new RuleValidationException(
                         List.of("These rules are identical to the active version " + current.getVersion()
                                 + ", so there is nothing to publish."));
@@ -121,6 +144,9 @@ public class RuleSetService {
         auditService.record("RULES_PUBLISHED", "ruleSetVersion:" + nextVersion, publishedBy,
                 "Published rule version " + nextVersion + " (" + saved.getVersionLabel() + "), hash "
                         + hash + ". Note: " + (changeNote == null ? "-" : changeNote));
+        log.info("FairHome : RuleSetService : in method publish : rules published : version {} hash {}",
+                nextVersion, hash);
+        log.debug("FairHome : RuleSetService : in method publish : END");
         return saved;
     }
 
@@ -129,6 +155,7 @@ public class RuleSetService {
      * than publishing a result nobody can justify.
      */
     public void validate(RuleSetDocument d) {
+        log.debug("FairHome : RuleSetService : in method validate : START");
         List<String> problems = new ArrayList<>();
 
         if (d.totalFlats() <= 0) {
@@ -227,8 +254,10 @@ public class RuleSetService {
         }
 
         if (!problems.isEmpty()) {
+            log.warn("FairHome : RuleSetService : in method validate : validation problems : {}", problems);
             throw new RuleValidationException(problems);
         }
+        log.debug("FairHome : RuleSetService : in method validate : END");
     }
 
     /**
@@ -236,6 +265,7 @@ public class RuleSetService {
      * the bands are treated as configuration errors rather than discovered on draw day.
      */
     private List<String> findIncomeBandGaps(List<RuleSetDocument.Category> categories) {
+        log.debug("FairHome : RuleSetService : in method findIncomeBandGaps : START");
         List<String> problems = new ArrayList<>();
         List<RuleSetDocument.Category> sorted = new ArrayList<>(categories);
         sorted.sort((a, b) -> {
@@ -268,11 +298,13 @@ public class RuleSetService {
             problems.add("the highest income band needs incomeMax set to null, "
                     + "otherwise a high earner falls into no category at all");
         }
+        log.debug("FairHome : RuleSetService : in method findIncomeBandGaps : END");
         return problems;
     }
 
     @Transactional
     public RuleSetVersion installDefaultRuleSet() {
+        log.debug("FairHome : RuleSetService : in method installDefaultRuleSet : START");
         String json = readClasspathRules();
         RuleSetDocument document = parse(json);
         validate(document);
@@ -288,20 +320,29 @@ public class RuleSetService {
         version.setChangeNote("Initial rule book loaded from " + DEFAULT_RULES);
         version.setActive(true);
         RuleSetVersion saved = repository.save(version);
-        log.info("Installed default rule set version 1, hash {}", saved.getContentHash());
+        log.info("FairHome : RuleSetService : in method installDefaultRuleSet : rules published : version 1 hash {}",
+                saved.getContentHash());
         auditService.record("RULES_PUBLISHED", "ruleSetVersion:1", "system",
                 "Initial rule book loaded from " + DEFAULT_RULES + ", hash " + saved.getContentHash());
+        log.debug("FairHome : RuleSetService : in method installDefaultRuleSet : END");
         return saved;
     }
 
     public String defaultRuleJson() {
-        return readClasspathRules();
+        log.debug("FairHome : RuleSetService : in method defaultRuleJson : START");
+        String json = readClasspathRules();
+        log.debug("FairHome : RuleSetService : in method defaultRuleJson : END");
+        return json;
     }
 
     private String readClasspathRules() {
+        log.debug("FairHome : RuleSetService : in method readClasspathRules : START");
         try (InputStream in = new ClassPathResource(DEFAULT_RULES).getInputStream()) {
-            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            String json = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            log.debug("FairHome : RuleSetService : in method readClasspathRules : END");
+            return json;
         } catch (IOException e) {
+            log.error("FairHome : RuleSetService : in method readClasspathRules : error : {}", e.getMessage(), e);
             throw new IllegalStateException("Cannot read " + DEFAULT_RULES + " from the classpath", e);
         }
     }

@@ -1,5 +1,8 @@
 package com.fairhome.support;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Verhoeff check-digit scheme, the same one used by Aadhaar numbers.
  *
@@ -7,6 +10,8 @@ package com.fairhome.support;
  * forms in, long before those errors reach the duplicate review queue.
  */
 public final class Verhoeff {
+
+    private static final Logger log = LoggerFactory.getLogger(Verhoeff.class);
 
     private static final int[][] D = {
             {0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
@@ -38,7 +43,9 @@ public final class Verhoeff {
     }
 
     public static boolean isChecksumValid(String digits) {
+        log.debug("FairHome : Verhoeff : in method isChecksumValid : START");
         if (digits == null || digits.isEmpty()) {
+            log.debug("FairHome : Verhoeff : in method isChecksumValid : END");
             return false;
         }
         int c = 0;
@@ -46,21 +53,27 @@ public final class Verhoeff {
         for (int i = 0; i < len; i++) {
             char ch = digits.charAt(len - 1 - i);
             if (ch < '0' || ch > '9') {
+                log.debug("FairHome : Verhoeff : in method isChecksumValid : END");
                 return false;
             }
             c = D[c][P[i % 8][ch - '0']];
         }
-        return c == 0;
+        boolean valid = c == 0;
+        log.debug("FairHome : Verhoeff : in method isChecksumValid : END");
+        return valid;
     }
 
     /** Returns the check digit that makes {@code payload + checkDigit} a valid Verhoeff string. */
     public static int checkDigitFor(String payload) {
+        log.debug("FairHome : Verhoeff : in method checkDigitFor : START");
         int c = 0;
         int len = payload.length();
         for (int i = 0; i < len; i++) {
             char ch = payload.charAt(len - 1 - i);
             c = D[c][P[(i + 1) % 8][ch - '0']];
         }
-        return INV[c];
+        int checkDigit = INV[c];
+        log.debug("FairHome : Verhoeff : in method checkDigitFor : END");
+        return checkDigit;
     }
 }
