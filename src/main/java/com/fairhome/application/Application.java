@@ -2,17 +2,19 @@ package com.fairhome.application;
 
 import com.fairhome.rules.Gender;
 import com.fairhome.support.Display;
+import com.fairhome.support.NamedEnumConverters;
 import com.fairhome.support.NationalId;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -53,11 +55,13 @@ public class Application {
     @Column(nullable = false, unique = true, length = 24)
     private String applicationNumber;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = NamedEnumConverters.ChannelConverter.class)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 16)
     private Channel channel;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = NamedEnumConverters.ApplicationStatusConverter.class)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 32)
     private ApplicationStatus status = ApplicationStatus.SUBMITTED;
 
@@ -86,7 +90,8 @@ public class Application {
     @Column(nullable = false)
     private LocalDate dateOfBirth;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = NamedEnumConverters.GenderConverter.class)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 16)
     private Gender gender;
 
@@ -322,6 +327,10 @@ public class Application {
 
     public void setAnnualIncome(BigDecimal annualIncome) {
         this.annualIncome = annualIncome;
+    }
+
+    public String getAnnualIncomeDisplay() {
+        return Display.rupees(annualIncome);
     }
 
     public Integer getYearsInArea() {

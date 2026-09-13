@@ -28,9 +28,8 @@ import java.util.Random;
  * validation and duplicate detection as anything else, and the resulting duplicate queue is genuine
  * output of the detector rather than fixtures posing as output.
  *
- * <p>Roughly nine percent of the generated applications are repeat attempts, split between people
- * re-submitting with the same national ID and people re-submitting with a mistyped ID but the same
- * name and date of birth. The second kind is what the fuzzy matcher exists for.
+ * <p>The bulk of the intake is unique people. A small, fixed number of repeat attempts are planted
+ * afterwards so the duplicate-review queue has two or three real cases to work through, not hundreds.
  */
 @Component
 public class DemoDataSeeder implements ApplicationRunner {
@@ -101,42 +100,49 @@ public class DemoDataSeeder implements ApplicationRunner {
         int rejected = 0;
 
         for (int i = 0; i < target; i++) {
-            boolean repeat = !people.isEmpty() && random.nextInt(100) < config.getDuplicatePercent();
-            Person person;
-            boolean mistypedId = false;
-
-            if (repeat) {
-                Person original = people.get(random.nextInt(people.size()));
-                mistypedId = random.nextBoolean();
-                person = mistypedId ? original.withMistypedId(random) : original;
-            } else {
-                person = Person.random(random);
-                people.add(person);
-            }
-
-            boolean offline = random.nextInt(100) < config.getOfflinePercent();
-            ApplicationForm form = person.toForm(random, offline);
-
-            try {
-                IntakeService.Receipt receipt = offline
-                        ? intakeService.recordOffline(form, "demo-seed")
-                        : intakeService.submitOnline(form);
-                accepted++;
-                if (receipt.heldForReview()) {
-                    held++;
-                }
-            } catch (IntakeException e) {
-                rejected++;
-            }
+            Person person = Person.random(random);
+            people.add(person);
+            IntakeCounts counts = submit(person, random, config.getOfflinePercent());
+            accepted += counts.accepted;
+            held += counts.held;
+            rejected += counts.rejected;
 
             if ((i + 1) % 500 == 0) {
                 log.info("Demo intake progress: {} of {}", i + 1, target);
             }
         }
 
+        int reviewDuplicates = Math.min(Math.max(config.getDuplicateReviewCount(), 0), people.size());
+        for (int i = 0; i < reviewDuplicates; i++) {
+            Person original = people.get(i);
+            // One exact national-ID repeat; the rest mistype a digit so the name+DOB matcher fires.
+            Person person = i == 0 ? original : original.withMistypedId(random);
+            IntakeCounts counts = submit(person, random, config.getOfflinePercent());
+            accepted += counts.accepted;
+            held += counts.held;
+            rejected += counts.rejected;
+        }
+
         log.info("Demo data ready in {} ms: {} applications recorded ({} held for duplicate review, "
-                        + "{} refused at intake), {} distinct people.",
-                System.currentTimeMillis() - start, accepted, held, rejected, people.size());
+                        + "{} refused at intake), {} distinct people, {} planted review duplicates.",
+                System.currentTimeMillis() - start, accepted, held, rejected, people.size(),
+                reviewDuplicates);
+    }
+
+    private IntakeCounts submit(Person person, Random random, int offlinePercent) {
+        boolean offline = random.nextInt(100) < offlinePercent;
+        ApplicationForm form = person.toForm(random, offline);
+        try {
+            IntakeService.Receipt receipt = offline
+                    ? intakeService.recordOffline(form, "demo-seed")
+                    : intakeService.submitOnline(form);
+            return new IntakeCounts(1, receipt.heldForReview() ? 1 : 0, 0);
+        } catch (IntakeException e) {
+            return new IntakeCounts(0, 0, 1);
+        }
+    }
+
+    private record IntakeCounts(int accepted, int held, int rejected) {
     }
 
     /** A synthetic applicant, kept so that repeat submissions can reuse the same identity. */

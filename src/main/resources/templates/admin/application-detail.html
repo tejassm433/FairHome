@@ -7,11 +7,11 @@
     <div th:replace="~{fragments/bits :: flash}"></div>
 
     <div class="page-head">
-        <div class="eyebrow mono" th:text="${application.applicationNumber}">FH-2026-000123</div>
-        <h1 th:text="${application.fullName}">name</h1>
+        <div class="eyebrow mono" th:text="${app.applicationNumber}">FH-2026-000123</div>
+        <h1 th:text="${app.fullName}">name</h1>
         <div class="pill-row">
-            <span th:replace="~{fragments/bits :: statusBadge(${application.status})}"></span>
-            <span class="badge" th:text="${application.channel.label}">channel</span>
+            <span th:replace="~{fragments/bits :: statusBadge(${app.status})}"></span>
+            <span class="badge" th:text="${app.channel.label}">channel</span>
             <span class="badge info" th:if="${category != null}" th:text="${category.code()}">LIG</span>
         </div>
     </div>
@@ -20,38 +20,38 @@
         <div class="card">
             <h3 class="mt0">Applicant details as submitted</h3>
             <table class="plain">
-                <tr><th>Name on the form</th><td th:text="${application.fullName}">name</td></tr>
+                <tr><th>Name on the form</th><td th:text="${app.fullName}">name</td></tr>
                 <tr><th>Normalised for matching</th>
-                    <td class="mono faint" th:text="${application.normalisedName}">name</td></tr>
+                    <td class="mono faint" th:text="${app.normalisedName}">name</td></tr>
                 <tr><th>Date of birth</th>
-                    <td th:text="${application.dateOfBirthDisplay} + ' (age ' + ${application.age} + ')'">dob</td></tr>
-                <tr><th>Gender</th><td th:text="${application.gender.label}">Female</td></tr>
+                    <td th:text="${app.dateOfBirthDisplay} + ' (age ' + ${app.age} + ')'">dob</td></tr>
+                <tr><th>Gender</th><td th:text="${app.gender.label}">Female</td></tr>
                 <tr><th>National ID</th>
-                    <td class="mono" th:text="${application.maskedNationalId}">XXXX XXXX 1234</td></tr>
-                <tr><th>Phone</th><td th:text="${application.phone}">phone</td></tr>
-                <tr><th>Email</th><td th:text="${application.email}">email</td></tr>
-                <tr><th>Address</th><td th:text="${application.addressLine}">address</td></tr>
-                <tr><th>Ward</th><td th:text="${application.cityOrWard}">ward</td></tr>
+                    <td class="mono" th:text="${app.maskedNationalId}">XXXX XXXX 1234</td></tr>
+                <tr><th>Phone</th><td th:text="${app.phone}">phone</td></tr>
+                <tr><th>Email</th><td th:text="${app.email}">email</td></tr>
+                <tr><th>Address</th><td th:text="${app.addressLine}">address</td></tr>
+                <tr><th>Ward</th><td th:text="${app.cityOrWard}">ward</td></tr>
                 <tr><th>Annual income</th>
-                    <td th:text="'₹' + ${#numbers.formatInteger(application.annualIncome, 1, 'COMMA')}">income</td></tr>
-                <tr><th>Years in the scheme area</th><td th:text="${application.yearsInArea}">5</td></tr>
+                    <td th:text="${app.annualIncomeDisplay}">₹250,000</td></tr>
+                <tr><th>Years in the scheme area</th><td th:text="${app.yearsInArea}">5</td></tr>
             </table>
         </div>
 
         <div class="card">
             <h3 class="mt0">Intake record</h3>
             <table class="plain">
-                <tr><th>Channel</th><td th:text="${application.channel.label}">channel</td></tr>
-                <tr><th>Application date</th><td th:text="${application.submittedOnDisplay}">date</td></tr>
-                <tr><th>Keyed into the system</th><td th:text="${application.recordedAtDisplay}">date</td></tr>
-                <tr th:if="${application.recordedBy != null}"><th>Entered by</th>
-                    <td th:text="${application.recordedBy}">officer</td></tr>
-                <tr th:if="${application.paperReference != null}"><th>Paper reference</th>
-                    <td class="mono" th:text="${application.paperReference}">PF/2026/1</td></tr>
+                <tr><th>Channel</th><td th:text="${app.channel.label}">channel</td></tr>
+                <tr><th>Application date</th><td th:text="${app.submittedOnDisplay}">date</td></tr>
+                <tr><th>Keyed into the system</th><td th:text="${app.recordedAtDisplay}">date</td></tr>
+                <tr th:if="${app.recordedBy != null}"><th>Entered by</th>
+                    <td th:text="${app.recordedBy}">officer</td></tr>
+                <tr th:if="${app.paperReference != null}"><th>Paper reference</th>
+                    <td class="mono" th:text="${app.paperReference}">PF/2026/1</td></tr>
                 <tr><th>Reference code</th>
-                    <td><span class="chip" th:text="${application.statusLookupKey}">CODE</span></td></tr>
-                <tr th:if="${application.statusNote != null}"><th>Note on file</th>
-                    <td th:text="${application.statusNote}">note</td></tr>
+                    <td><span class="chip" th:text="${app.statusLookupKey}">CODE</span></td></tr>
+                <tr th:if="${app.statusNote != null}"><th>Note on file</th>
+                    <td th:text="${app.statusNote}">note</td></tr>
             </table>
 
             <h3 class="mt2">Quota tests</h3>
@@ -64,8 +64,8 @@
                       th:text="${entry.key} + (${entry.value} ? ' ✓' : ' ✗')">test</span>
             </div>
 
-            <div class="form-actions" th:if="${application.status.name() != 'WITHDRAWN'}">
-                <form th:action="@{/admin/applications/{n}/withdraw(n=${application.applicationNumber})}"
+            <div class="form-actions" th:if="${app.status.name() != 'WITHDRAWN'}">
+                <form th:action="@{/admin/applications/{n}/withdraw(n=${app.applicationNumber})}"
                       method="post" style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center">
                     <input type="text" name="reason" placeholder="Reason for withdrawal"
                            style="min-width:220px">
@@ -137,7 +137,7 @@
 
     <div class="form-actions">
         <a class="btn ghost" th:href="@{/admin/applications}">Back to the register</a>
-        <a class="btn ghost" th:href="@{/verify(applicationNumber=${application.applicationNumber})}">
+        <a class="btn ghost" th:href="@{/verify(applicationNumber=${app.applicationNumber})}">
             Verify this lottery position</a>
     </div>
 

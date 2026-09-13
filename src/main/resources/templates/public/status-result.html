@@ -5,8 +5,8 @@
 <div th:fragment="content">
 
     <div class="page-head">
-        <div class="eyebrow mono" th:text="${application.applicationNumber}">FH-2026-000123</div>
-        <h1 th:text="${application.fullName}">Applicant name</h1>
+        <div class="eyebrow mono" th:text="${app.applicationNumber}">FH-2026-000123</div>
+        <h1 th:text="${app.fullName}">Applicant name</h1>
     </div>
 
     <div class="grid two">
@@ -14,13 +14,13 @@
             <h3 class="mt0">Your application</h3>
             <table class="plain">
                 <tr><th>Status</th>
-                    <td><span th:replace="~{fragments/bits :: statusBadge(${application.status})}"></span></td></tr>
+                    <td><span th:replace="~{fragments/bits :: statusBadge(${app.status})}"></span></td></tr>
                 <tr><th>Applied through</th>
-                    <td th:text="${application.channel.label}">Online form</td></tr>
+                    <td th:text="${app.channel.label}">Online form</td></tr>
                 <tr><th>Application date</th>
-                    <td th:text="${application.submittedOnDisplay}">3 Feb 2026</td></tr>
+                    <td th:text="${app.submittedOnDisplay}">3 Feb 2026</td></tr>
                 <tr><th>National ID on file</th>
-                    <td class="mono" th:text="${application.maskedNationalId}">XXXX XXXX 1234</td></tr>
+                    <td class="mono" th:text="${app.maskedNationalId}">XXXX XXXX 1234</td></tr>
                 <tr><th>Income category</th>
                     <td>
                         <strong th:if="${category != null}" th:text="${category.code()}">LIG</strong>
@@ -33,13 +33,13 @@
                         <span th:if="${localResidentQualified}" class="badge ok">Qualifies</span>
                         <span th:unless="${localResidentQualified}" class="badge">Does not qualify</span>
                         <div class="faint" style="font-size:0.82rem"
-                             th:text="${application.yearsInArea} + ' year(s) in the area recorded; '
+                             th:text="${app.yearsInArea} + ' year(s) in the area recorded; '
                                  + ${rules.localResident().minYearsInArea()} + ' needed.'"></div>
                     </td></tr>
             </table>
-            <div class="banner info" th:if="${application.statusNote != null}" style="margin-top:1rem">
+            <div class="banner info" th:if="${app.statusNote != null}" style="margin-top:1rem">
                 <strong>Note on file</strong>
-                <span th:text="${application.statusNote}"></span>
+                <span th:text="${app.statusNote}"></span>
             </div>
         </div>
 
@@ -54,7 +54,7 @@
                 <p class="muted mb0">
                     You can already check that your lottery position is fixed and not up to anyone's
                     discretion:
-                    <a th:href="@{/verify(applicationNumber=${application.applicationNumber})}">
+                    <a th:href="@{/verify(applicationNumber=${app.applicationNumber})}">
                         recompute it yourself</a>.
                 </p>
             </div>
@@ -102,7 +102,7 @@
         <div class="card-title-row">
             <h2 class="mt0 mb0">How this was decided</h2>
             <a class="btn ghost small"
-               th:href="@{/verify(applicationNumber=${application.applicationNumber})}">Verify my position</a>
+               th:href="@{/verify(applicationNumber=${app.applicationNumber})}">Verify my position</a>
         </div>
         <p class="muted" style="font-size:0.9rem">
             This is the record the engine wrote at the moment it made the decision, not a summary put

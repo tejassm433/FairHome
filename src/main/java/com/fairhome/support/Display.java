@@ -1,5 +1,8 @@
 package com.fairhome.support;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -38,5 +41,15 @@ public final class Display {
 
     public static String timestamp(Instant instant) {
         return instant == null ? "-" : DATE_TIME_SECONDS.format(instant.atZone(ZoneId.systemDefault()));
+    }
+
+    public static String rupees(BigDecimal amount) {
+        if (amount == null) {
+            return "—";
+        }
+        NumberFormat format = NumberFormat.getIntegerInstance(Locale.ENGLISH);
+        format.setGroupingUsed(true);
+        format.setMaximumFractionDigits(0);
+        return "₹" + format.format(amount.setScale(0, RoundingMode.HALF_UP));
     }
 }

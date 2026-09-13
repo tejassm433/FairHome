@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
@@ -218,11 +219,13 @@ public class AdminController {
     }
 
     @GetMapping("/applications/{applicationNumber}")
+    @Transactional(readOnly = true)
     public String applicationDetail(@PathVariable String applicationNumber, Model model) {
         Application application = applications.findByApplicationNumber(applicationNumber)
                 .orElseThrow(() -> new IllegalArgumentException("No application " + applicationNumber));
         model.addAttribute("navPage", "admin-applications");
-        model.addAttribute("application", application);
+        // Not "application": Thymeleaf/Spring bind that name to the servlet context, which 500s the page.
+        model.addAttribute("app", application);
         model.addAttribute("rules", ruleSetService.activeRules());
         model.addAttribute("category",
                 ruleSetService.activeRules().categoryFor(application.getAnnualIncome()));
@@ -236,7 +239,10 @@ public class AdminController {
 
         List<Allocation> history = new ArrayList<>();
         for (DrawRun run : drawService.allRuns()) {
-            drawService.allocationFor(run.getId(), application.getId()).ifPresent(history::add);
+            drawService.allocationFor(run.getId(), application.getId()).ifPresent(alloc -> {
+                alloc.getExplanation();
+                history.add(alloc);
+            });
         }
         model.addAttribute("allocationHistory", history);
         model.addAttribute("runs", drawService.allRuns());

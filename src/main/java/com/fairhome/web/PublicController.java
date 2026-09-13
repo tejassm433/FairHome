@@ -23,6 +23,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Optional;
@@ -114,6 +115,7 @@ public class PublicController {
      * page shows the full reasoning trace the engine recorded, not a bare outcome.
      */
     @PostMapping("/status")
+    @Transactional(readOnly = true)
     public String status(@RequestParam String applicationNumber, @RequestParam String referenceCode,
                          Model model) {
         model.addAttribute("navPage", "status");
@@ -133,7 +135,8 @@ public class PublicController {
         RuleSetDocument rules = ruleSetService.activeRules();
         RuleSetDocument.Category category = rules.categoryFor(application.getAnnualIncome());
 
-        model.addAttribute("application", application);
+        // Not "application": Thymeleaf/Spring bind that name to the servlet context, which 500s the page.
+        model.addAttribute("app", application);
         model.addAttribute("rules", rules);
         model.addAttribute("category", category);
         model.addAttribute("localResidentQualified",
@@ -144,6 +147,9 @@ public class PublicController {
         if (published != null) {
             Allocation allocation = drawService
                     .allocationFor(published.getId(), application.getId()).orElse(null);
+            if (allocation != null) {
+                allocation.getExplanation();
+            }
             model.addAttribute("allocation", allocation);
         }
         return "public/status-result";

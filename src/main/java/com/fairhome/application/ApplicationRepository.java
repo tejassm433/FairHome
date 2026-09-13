@@ -24,11 +24,14 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 
     List<Application> findByNormalisedEmail(String normalisedEmail);
 
-    List<Application> findByStatusOrderByIdAsc(ApplicationStatus status);
+    @Query("select a from Application a where a.status = :status order by a.id asc")
+    List<Application> findByStatusOrderByIdAsc(@Param("status") ApplicationStatus status);
 
-    long countByStatus(ApplicationStatus status);
+    @Query("select count(a) from Application a where a.status = :status")
+    long countByStatus(@Param("status") ApplicationStatus status);
 
-    long countByChannel(Channel channel);
+    @Query("select count(a) from Application a where a.channel = :channel")
+    long countByChannel(@Param("channel") Channel channel);
 
     @Query("""
             select a from Application a

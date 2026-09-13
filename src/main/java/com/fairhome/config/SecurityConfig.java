@@ -61,7 +61,7 @@ public class SecurityConfig {
     SecurityFilterChain webSecurity(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/css/**", "/js/**").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/error").permitAll()
                         .requestMatchers("/", "/apply", "/status", "/rules", "/verify", "/results")
                         .permitAll()
                         .requestMatchers(HttpMethod.POST, "/apply", "/status").permitAll()

@@ -1,14 +1,16 @@
 package com.fairhome.draw;
 
+import com.fairhome.support.NamedEnumConverters;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 
@@ -28,7 +30,8 @@ public class DrawRun {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = NamedEnumConverters.DrawModeConverter.class)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 16)
     private DrawMode mode;
 

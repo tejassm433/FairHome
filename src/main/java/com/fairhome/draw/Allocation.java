@@ -1,15 +1,17 @@
 package com.fairhome.draw;
 
+import com.fairhome.support.NamedEnumConverters;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * The decision recorded for one application in one draw run, with the reasoning attached.
@@ -42,7 +44,8 @@ public class Allocation {
     @Column(nullable = false, length = 160)
     private String applicantName;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = NamedEnumConverters.OutcomeConverter.class)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 24)
     private Outcome outcome;
 

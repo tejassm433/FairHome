@@ -19,7 +19,8 @@ public class FairHomeProperties {
     public static class DemoData {
         private boolean enabled = true;
         private int applications = 4000;
-        private int duplicatePercent = 9;
+        /** How many extra submissions are planted as held duplicate-review cases (2–3 is enough to test). */
+        private int duplicateReviewCount = 3;
         private int offlinePercent = 35;
         private String seed = "fairhome-demo";
 
@@ -39,12 +40,12 @@ public class FairHomeProperties {
             this.applications = applications;
         }
 
-        public int getDuplicatePercent() {
-            return duplicatePercent;
+        public int getDuplicateReviewCount() {
+            return duplicateReviewCount;
         }
 
-        public void setDuplicatePercent(int duplicatePercent) {
-            this.duplicatePercent = duplicatePercent;
+        public void setDuplicateReviewCount(int duplicateReviewCount) {
+            this.duplicateReviewCount = duplicateReviewCount;
         }
 
         public int getOfflinePercent() {
