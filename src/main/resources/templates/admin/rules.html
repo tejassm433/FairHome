@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Rule book', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div th:replace="~{fragments/bits :: trustedAdminNote}"></div>
+    <div th:replace="~{fragments/bits :: flash}"></div>
+
+    <div class="page-head">
+        <div class="eyebrow">Policy configuration</div>
+        <h1>Rule book</h1>
+        <p class="lead">
+            Quotas, income bands, reserved quotas, the lottery seed, the waiting list size and what happens
+            to unclaimed seats all live in this one file. Publishing a change never overwrites the old
+            version; it creates a new numbered version with its own hash, and every draw records which
+            version it ran under.
+        </p>
+    </div>
+
+    <div class="banner error" th:if="${problems != null}">
+        <strong>Not published. Fix these first:</strong>
+        <ul>
+            <li th:each="p : ${problems}" th:text="${p}">problem</li>
+        </ul>
+    </div>
+
+    <div class="banner warn" th:if="${hasRuns}">
+        <strong>Draw runs already exist</strong>
+        <span>
+            Publishing new rules does not touch a completed run, since each run stores the rule version and
+            hash it used. It does change what a future draw would do, so the comparison people will make is
+            between versions: keep the change note meaningful.
+        </span>
+    </div>
+
+    <div class="stack">
+
+    <div class="grid two">
+        <div class="card">
+            <div class="card-title-row">
+                <h2 class="mt0 mb0">Edit and publish</h2>
+                <span class="badge info" th:text="'active: v' + ${active.version}">v1</span>
+            </div>
+            <form th:action="@{/admin/rules}" method="post">
+                <div class="field">
+                    <label for="json">Rule file (JSON)</label>
+                    <textarea id="json" name="json" rows="30" th:text="${json}" spellcheck="false"></textarea>
+                </div>
+                <div class="field">
+                    <label for="note">What changed and why</label>
+                    <input type="text" id="note" name="note" th:value="${note}"
+                           placeholder="e.g. EWS quota raised from 25% to 30% per council resolution 118">
+                    <div class="help">Stored with the version and shown on the public rules page.</div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn" type="submit">Validate and publish a new version</button>
+                    <a class="btn ghost" th:href="@{/admin/rules}">Discard changes</a>
+                </div>
+            </form>
+            <hr>
+            <form th:action="@{/admin/rules/reset}" method="post">
+                <button class="btn ghost small" type="submit">
+                    Revert to the rule book shipped with the application
+                </button>
+            </form>
+        </div>
+
+        <div>
+            <div class="card">
+                <h2 class="mt0">What gets checked before publishing</h2>
+                <ul class="muted" style="font-size:0.9rem; padding-left:1.2rem">
+                    <li>Category quota percentages must total exactly 100.</li>
+                    <li>Income bands must be contiguous, with no gaps and no overlaps, and the top band
+                        must be open-ended, so no declared income can fall outside every category.</li>
+                    <li>Reserved quota percentages must not exceed 100% of a category.</li>
+                    <li>Every reserved quota must name a test that exists in the software.</li>
+                    <li>A lottery seed is mandatory. Without it the draw would not be reproducible.</li>
+                    <li>The policy for unclaimed reserved seats and unfilled category seats must be
+                        stated explicitly, not left to be decided on the day.</li>
+                </ul>
+                <p class="faint mb0" style="font-size:0.84rem">
+                    A rule book that fails any of these is refused outright. Refusing to run is always
+                    better than producing a result nobody can defend.
+                </p>
+            </div>
+
+            <div class="card">
+                <h2 class="mt0">Tests a reserved quota may use</h2>
+                <table class="plain">
+                    <tr th:each="entry : ${predicates}">
+                        <th style="width:auto"><span class="chip" th:text="${entry.key}">KEY</span></th>
+                        <td th:text="${entry.value}">description</td>
+                    </tr>
+                </table>
+                <p class="faint mb0" style="font-size:0.84rem">
+                    Config composes these; it cannot define new ones. That keeps the set of possible
+                    eligibility tests small enough to read in one sitting, which is what makes the rule
+                    file auditable rather than just flexible.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="mt0">Published versions</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Version</th><th class="wrap">Label</th><th>Published</th><th>By</th>
+                    <th class="wrap">Change note</th><th>Hash</th><th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="v : ${history}">
+                    <td><strong th:text="${v.version}">1</strong>
+                        <span th:if="${v.active}" class="badge ok">active</span></td>
+                    <td class="wrap" th:text="${v.versionLabel}">v1</td>
+                    <td th:text="${v.publishedAtDisplay}">date</td>
+                    <td th:text="${v.publishedBy}">system</td>
+                    <td class="wrap" th:text="${v.changeNote}">note</td>
+                    <td><span class="chip" th:text="${v.shortHash}">hash</span></td>
+                    <td><a th:href="@{/exports/rules/{n}.json(n=${v.version})}">download</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    </div>
+
+</div>
+</body>
+</html>

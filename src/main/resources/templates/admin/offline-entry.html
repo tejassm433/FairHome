@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Enter a paper application', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div th:replace="~{fragments/bits :: trustedAdminNote}"></div>
+
+    <div class="page-head">
+        <div class="eyebrow">Offline intake</div>
+        <h1>Enter a paper application</h1>
+        <p class="lead">
+            This form goes through exactly the same validation and duplicate checking as the public one.
+            A paper application entered here cannot skip a check that an online application has to pass;
+            that is the only way "no duplicates on either channel" holds up.
+        </p>
+    </div>
+
+    <div class="card">
+        <form th:action="@{/admin/offline-entry}" th:object="${form}" method="post" novalidate>
+
+            <div class="banner error" th:if="${#fields.hasGlobalErrors()}">
+                <strong>Not recorded</strong>
+                <ul>
+                    <li th:each="e : ${#fields.globalErrors()}" th:text="${e}">error</li>
+                </ul>
+            </div>
+            <div class="banner error" th:if="${#fields.hasErrors('*')} and ${!#fields.hasGlobalErrors()}">
+                <strong>Not recorded</strong>
+                <span>The fields with a message below need attention before this form can be saved.</span>
+            </div>
+
+            <fieldset>
+                <legend>Paper trail</legend>
+                <div class="form-row">
+                    <div class="field">
+                        <label for="paperReference">Paper form or receipt number</label>
+                        <input type="text" id="paperReference" th:field="*{paperReference}"
+                               placeholder="PF/2026/12345"
+                               th:classappend="${#fields.hasErrors('paperReference')} ? 'invalid'">
+                        <div class="help">So the entry can be traced back to the physical form.</div>
+                        <div class="field-error" th:if="${#fields.hasErrors('paperReference')}"
+                             th:errors="*{paperReference}">error</div>
+                    </div>
+                    <div class="field">
+                        <label for="paperSubmittedOn">Date on the paper form</label>
+                        <input type="date" id="paperSubmittedOn" th:field="*{paperSubmittedOn}"
+                               th:classappend="${#fields.hasErrors('paperSubmittedOn')} ? 'invalid'">
+                        <div class="help">
+                            The application date is the date the applicant handed the form in, not today.
+                        </div>
+                        <div class="field-error" th:if="${#fields.hasErrors('paperSubmittedOn')}"
+                             th:errors="*{paperSubmittedOn}">error</div>
+                    </div>
+                    <div class="field">
+                        <label for="recordedBy">Entered by</label>
+                        <input type="text" id="recordedBy" th:field="*{recordedBy}"
+                               th:classappend="${#fields.hasErrors('recordedBy')} ? 'invalid'">
+                        <div class="help">Recorded on the audit trail against this application.</div>
+                        <div class="field-error" th:if="${#fields.hasErrors('recordedBy')}"
+                             th:errors="*{recordedBy}">error</div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div th:replace="~{fragments/form-fields :: applicantFields(${form}, ${rules}, ${genders})}"></div>
+
+            <fieldset>
+                <legend>Declaration on the form</legend>
+                <div class="checkline">
+                    <input type="checkbox" id="declarationAccepted" th:field="*{declarationAccepted}">
+                    <span>
+                        <label for="declarationAccepted">
+                            The paper form carries the applicant's signed declaration
+                        </label>
+                        <div class="help">
+                            Do not record an application whose declaration is unsigned; send it back instead.
+                        </div>
+                    </span>
+                </div>
+                <div class="field-error" th:if="${#fields.hasErrors('declarationAccepted')}"
+                     th:errors="*{declarationAccepted}">error</div>
+            </fieldset>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">Record this application</button>
+                <a class="btn ghost" th:href="@{/admin}">Back to the console</a>
+            </div>
+        </form>
+    </div>
+
+    <script th:src="@{/js/apply.js}"></script>
+
+</div>
+</body>
+</html>

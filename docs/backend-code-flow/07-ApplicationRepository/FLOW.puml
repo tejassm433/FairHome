@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.application.ApplicationRepository
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :DedupService.findCandidates loads pool via these queries;
+stop
+note right
+  Spring Data lookups by number, national ID, DOB, phone, email, status.
+  Source: src/main/java/com/fairhome/application/ApplicationRepository.java
+end note
+@enduml

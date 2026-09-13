@@ -1,0 +1,9 @@
+@startuml
+title Final draw after the queue is clear
+skinparam backgroundColor #f8f1e3
+start
+  :Queue must be empty;
+  :AllocationEngine;
+  :201 describeRun;
+stop
+@enduml

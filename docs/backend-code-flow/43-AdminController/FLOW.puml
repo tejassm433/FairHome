@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.web.AdminController
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :Not for Postman JSON; use ApiController instead;
+stop
+note right
+  HTML officer console. Same services; form POST not JSON.
+  Source: src/main/java/com/fairhome/web/AdminController.java
+end note
+@enduml

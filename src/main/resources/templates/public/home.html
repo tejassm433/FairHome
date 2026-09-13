@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Housing scheme', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="hero">
+        <div>
+            <div class="page-head">
+                <div class="eyebrow">Public housing allotment</div>
+                <h1 th:text="${rules.schemeName()}">FairHome Phase-1 Housing Scheme</h1>
+                <p class="lead">
+                    <strong th:text="${rules.totalFlats()}">600</strong> flats, allotted by a published
+                    lottery inside income categories, with reserved quotas including one for people
+                    already living in the scheme area. Every rule that decides the outcome is published
+                    before the draw, and every decision afterwards comes with the reasoning attached.
+                </p>
+            </div>
+            <div class="pill-row">
+                <a class="btn" th:href="@{/apply}">Apply for a flat</a>
+                <a class="btn ghost" th:href="@{/status}">Check my application</a>
+                <a class="btn ghost" th:href="@{/rules}">Read the rules</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="mt0">Where things stand</h3>
+            <div class="kv"><span class="k">Applications received</span>
+                <strong class="tabular" th:text="${totalApplications}">0</strong></div>
+            <div class="kv"><span class="k">Through the online form</span>
+                <span class="tabular" th:text="${onlineCount}">0</span></div>
+            <div class="kv"><span class="k">Paper forms keyed in</span>
+                <span class="tabular" th:text="${offlineCount}">0</span></div>
+            <div class="kv"><span class="k">Flats available</span>
+                <span class="tabular" th:text="${rules.totalFlats()}">600</span></div>
+            <div class="kv"><span class="k">Draw result</span>
+                <span th:if="${publishedRun == null}" class="badge held">Not published yet</span>
+                <a th:if="${publishedRun != null}" th:href="@{/results}" class="badge ok">Published</a>
+            </div>
+            <hr>
+            <p class="faint mb0" style="font-size:0.83rem">
+                The lottery order is fixed by a seed published in advance, so the draw can be recomputed
+                by anyone. <a th:href="@{/verify}">Try it on your own application number.</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="grid two">
+        <div class="card">
+            <h2 class="mt0">Income categories</h2>
+            <p class="muted" style="font-size:0.9rem">
+                Your category is worked out from the household income you declare, not chosen by you.
+                Each category gets a fixed share of the flats.
+            </p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Annual income</th>
+                        <th class="num">Share of the 600</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="c : ${rules.categories()}">
+                        <td>
+                            <strong th:text="${c.code()}">EWS</strong><br>
+                            <small class="faint" th:text="${c.label()}">label</small>
+                        </td>
+                        <td class="wrap">
+                            <span th:if="${c.incomeMax() != null}"
+                                  th:text="'₹' + ${#numbers.formatInteger(c.incomeMin(), 1, 'COMMA')} + ' – ₹' + ${#numbers.formatInteger(c.incomeMax(), 1, 'COMMA')}"></span>
+                            <span th:if="${c.incomeMax() == null}"
+                                  th:text="'₹' + ${#numbers.formatInteger(c.incomeMin(), 1, 'COMMA')} + ' and above'"></span>
+                        </td>
+                        <td class="num" th:text="${c.quotaPercent()} + '%'">25%</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="mt0">Reserved quotas</h2>
+            <p class="muted" style="font-size:0.9rem">
+                Each reserved quota is carved out of every income category. If you qualify you get first
+                claim on those seats, and you still compete for the open seats alongside everyone else.
+            </p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Quota</th>
+                        <th class="wrap">Who it is for</th>
+                        <th class="num">Share of each category</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="r : ${rules.reservations()}">
+                        <td><strong th:text="${r.code()}">LOCAL</strong></td>
+                        <td class="wrap" th:text="${r.label()}">label</td>
+                        <td class="num" th:text="${r.percentOfCategory()} + '%'">30%</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="faint mt1 mb0" style="font-size:0.83rem">
+                "Existing resident" means at least
+                <strong th:text="${rules.localResident().minYearsInArea()}">3</strong>
+                continuous years in
+                <span th:text="${rules.localResident().areaLabel()}">the scheme area</span>.
+            </p>
+        </div>
+    </div>
+
+    <div class="card mt2">
+        <h2 class="mt0">How the draw works</h2>
+        <div class="grid three">
+            <div>
+                <h3>1. One application per person</h3>
+                <p class="muted" style="font-size:0.9rem">
+                    Applications are matched on the national ID number, and also on close name and date
+                    of birth matches in case a digit was mistyped. A suspected repeat is held for an
+                    officer to review rather than thrown out by the machine.
+                </p>
+            </div>
+            <div>
+                <h3>2. A lottery you can recompute</h3>
+                <p class="muted" style="font-size:0.9rem">
+                    Your position is the SHA-256 hash of the published seed and your application number.
+                    No random number generator is involved, so the same list comes out every time,
+                    on any machine.
+                </p>
+            </div>
+            <div>
+                <h3>3. Reasons, not just outcomes</h3>
+                <p class="muted" style="font-size:0.9rem">
+                    Once the result is published, your status page shows your position, the cutoff in
+                    your category, and the step-by-step record of how the decision was reached.
+                </p>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

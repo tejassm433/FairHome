@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Apply', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-head">
+        <div class="eyebrow">Online application</div>
+        <h1>Apply for a flat</h1>
+        <p class="lead">
+            One application per person. If you are not sure whether an earlier attempt went through,
+            do not send another one: use <a th:href="@{/status}">check my application</a> instead, or
+            submit again and we will hold the second one for a person to look at rather than losing it.
+        </p>
+    </div>
+
+    <div class="card">
+        <form th:action="@{/apply}" th:object="${form}" method="post" novalidate>
+
+            <div class="banner error" th:if="${#fields.hasGlobalErrors()}">
+                <strong>We could not accept this application</strong>
+                <ul>
+                    <li th:each="e : ${#fields.globalErrors()}" th:text="${e}">error</li>
+                </ul>
+            </div>
+            <div class="banner error" th:if="${#fields.hasErrors('*')} and ${!#fields.hasGlobalErrors()}">
+                <strong>Some details need checking</strong>
+                <span>The fields with a message below need attention before this can be submitted.</span>
+            </div>
+
+            <div th:replace="~{fragments/form-fields :: applicantFields(${form}, ${rules}, ${genders})}"></div>
+
+            <fieldset>
+                <legend>Declaration</legend>
+                <div class="checkline">
+                    <input type="checkbox" id="declarationAccepted" th:field="*{declarationAccepted}">
+                    <span>
+                        <label for="declarationAccepted">
+                            I confirm the details above are true, and that I have not applied to this
+                            scheme before under any other application.
+                        </label>
+                        <div class="help">
+                            Knowingly submitting two applications is grounds for cancelling both.
+                        </div>
+                    </span>
+                </div>
+                <div class="field-error" th:if="${#fields.hasErrors('declarationAccepted')}"
+                     th:errors="*{declarationAccepted}">error</div>
+            </fieldset>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">Submit application</button>
+                <a class="btn ghost" th:href="@{/}">Cancel</a>
+                <span class="faint" style="font-size:0.82rem">
+                    You will get an application number and a reference code on the next screen. Keep both.
+                </span>
+            </div>
+        </form>
+    </div>
+
+    <script th:src="@{/js/apply.js}"></script>
+
+</div>
+</body>
+</html>

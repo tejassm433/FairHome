@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.dedup.DuplicateResolution
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :POST /api/admin/duplicates/{id}/resolve decision field;
+stop
+note right
+  OPEN, CONFIRMED_DUPLICATE, NOT_A_DUPLICATE.
+  Source: src/main/java/com/fairhome/dedup/DuplicateResolution.java
+end note
+@enduml

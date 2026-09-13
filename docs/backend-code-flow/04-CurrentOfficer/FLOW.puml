@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.config.CurrentOfficer
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :SecurityContext -> CurrentOfficer.name -> AuditService.record actor;
+stop
+note right
+  Reads the signed-in username (or the configured officer-name fallback) for the audit actor.
+  Source: src/main/java/com/fairhome/config/CurrentOfficer.java
+end note
+@enduml

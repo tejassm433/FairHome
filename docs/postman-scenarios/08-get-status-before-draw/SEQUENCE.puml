@@ -1,0 +1,9 @@
+@startuml
+title Applicant status with receipt code, no published draw yet
+skinparam backgroundColor #f8f1e3
+start
+  :ApiController.status;
+  :match number + statusLookupKey;
+  :no published run -> draw.published false;
+stop
+@enduml

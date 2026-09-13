@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.draw.DrawMode
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :mode=DRY_RUN default;
+stop
+note right
+  DRY_RUN or FINAL query param on POST /api/admin/draws.
+  Source: src/main/java/com/fairhome/draw/DrawMode.java
+end note
+@enduml

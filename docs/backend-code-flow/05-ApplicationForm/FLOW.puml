@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.application.ApplicationForm
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :Postman JSON -> @Valid ApplicationForm -> IntakeService;
+stop
+note right
+  JSON/HTML input DTO. Public and offline share it; paper fields only on admin.
+  Source: src/main/java/com/fairhome/application/ApplicationForm.java
+end note
+@enduml

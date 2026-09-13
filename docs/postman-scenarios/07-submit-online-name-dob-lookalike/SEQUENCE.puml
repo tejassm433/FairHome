@@ -1,0 +1,9 @@
+@startuml
+title Same name + DOB, different valid ID -> queue
+skinparam backgroundColor #f8f1e3
+start
+  :DedupService NAME_AND_DOB if similarity >= 0.88;
+  :raiseFlags;
+  :201 held;
+stop
+@enduml

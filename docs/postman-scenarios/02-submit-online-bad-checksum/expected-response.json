@@ -1,0 +1,7 @@
+{
+  "status": 422,
+  "message": "The application was not accepted.",
+  "fieldErrors": {
+    "nationalId": "That national ID number fails its checksum, so at least one digit is wrong. Please check it against the card."
+  }
+}

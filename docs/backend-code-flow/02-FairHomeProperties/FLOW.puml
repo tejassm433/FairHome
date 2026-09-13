@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.config.FairHomeProperties
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :application.properties -> FairHomeProperties -> SecurityConfig / CurrentOfficer / DemoDataSeeder;
+stop
+note right
+  Binds fairhome.* from application.properties (admin login, demo seed flags).
+  Source: src/main/java/com/fairhome/config/FairHomeProperties.java
+end note
+@enduml

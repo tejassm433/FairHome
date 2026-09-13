@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "contentHash": "64-char sha256",
+  "rules": {
+    "totalFlats": 600
+  }
+}

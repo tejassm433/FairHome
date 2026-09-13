@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Draw console', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div th:replace="~{fragments/bits :: trustedAdminNote}"></div>
+    <div th:replace="~{fragments/bits :: flash}"></div>
+
+    <div class="page-head">
+        <div class="eyebrow">Allocation</div>
+        <h1>Draw console</h1>
+        <p class="lead">
+            A dry run can be repeated as often as you like and is never visible to applicants. A final draw
+            can only run once and only when the duplicate queue is clear, and it becomes the official result
+            only when you publish it.
+        </p>
+    </div>
+
+    <div class="grid four" style="margin-bottom:1.5rem">
+        <div class="stat">
+            <div class="label">Applications in the draw</div>
+            <div class="value" th:text="${inDraw}">3600</div>
+            <div class="hint">accepted and not held</div>
+        </div>
+        <div class="stat" th:classappend="${openFlags > 0} ? 'warn' : 'success'">
+            <div class="label">Duplicate queue</div>
+            <div class="value" th:text="${openFlags}">0</div>
+            <div class="hint" th:text="${openFlags > 0} ? 'blocks a final draw' : 'clear'">clear</div>
+        </div>
+        <div class="stat">
+            <div class="label">Flats</div>
+            <div class="value" th:text="${rules.totalFlats()}">600</div>
+            <div class="hint" th:text="'rule version ' + ${ruleVersion.version}">v1</div>
+        </div>
+        <div class="stat accent">
+            <div class="label">Official result</div>
+            <div class="value" style="font-size:1.05rem"
+                 th:text="${publishedRun != null} ? 'run #' + ${publishedRun.id} : 'not published'">none</div>
+            <div class="hint" th:text="${publishedRun != null} ? ${publishedRun.publishedAtDisplay} : '-'">-</div>
+        </div>
+    </div>
+
+    <div class="grid two">
+        <div class="card">
+            <h2 class="mt0">Run a dry run</h2>
+            <p class="muted" style="font-size:0.9rem">
+                Runs the whole allocation against the active rule book and stores every decision with its
+                reasons, but nothing is shown to applicants and nothing is final. This is how you check a
+                rule change before committing to it.
+            </p>
+            <form th:action="@{/admin/draw/run}" method="post">
+                <input type="hidden" name="mode" value="DRY_RUN">
+                <div class="field">
+                    <label for="dryNote">Note for the record</label>
+                    <input type="text" id="dryNote" name="note"
+                           placeholder="e.g. checking the effect of the revised LOCAL quota">
+                </div>
+                <div class="form-actions">
+                    <button class="btn ghost" type="submit">Run a dry run</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2 class="mt0">Run the final draw</h2>
+            <div class="banner error" th:if="${openFlags > 0}">
+                <strong>Blocked</strong>
+                <span th:text="${openFlags} + ' duplicate review(s) are still open. The published rules do not '
+                    + 'allow a final draw while any remain, because a duplicate resolved afterwards would '
+                    + 'change who gets a flat.'">blocked</span>
+            </div>
+            <div class="banner error" th:if="${publishedRun != null}">
+                <strong>Already published</strong>
+                <span th:text="'Run #' + ${publishedRun.id} + ' is the official result. Withdraw its '
+                    + 'publication first if it genuinely has to be re-run; that act is recorded.'">published</span>
+            </div>
+            <p class="muted" style="font-size:0.9rem" th:if="${openFlags == 0 and publishedRun == null}">
+                This produces the result that will be published. It pins the rule version, the rule hash and
+                the seed into the run record, and writes a hash over the whole ordered decision list.
+            </p>
+            <form th:action="@{/admin/draw/run}" method="post">
+                <input type="hidden" name="mode" value="FINAL">
+                <div class="field">
+                    <label for="finalNote">Note for the record</label>
+                    <input type="text" id="finalNote" name="note"
+                           placeholder="e.g. final draw conducted before the allotment committee">
+                </div>
+                <div class="form-actions">
+                    <button class="btn" type="submit" th:disabled="${openFlags > 0 or publishedRun != null}">
+                        Run the final draw
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="mt0">Runs so far</h2>
+        <p class="muted" th:if="${#lists.isEmpty(runs)}">Nothing has been run yet.</p>
+        <div class="table-wrap" th:if="${!#lists.isEmpty(runs)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>Run</th><th>Mode</th><th>Executed</th><th class="wrap">Note</th>
+                    <th class="num">Allotted</th><th class="num">Waitlisted</th>
+                    <th class="num">Not selected</th><th class="num">Excluded</th><th class="num">Vacant</th>
+                    <th>Rules</th><th>Results hash</th><th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${runs}">
+                    <td><a th:href="@{/admin/draw/{id}(id=${r.id})}" th:text="'#' + ${r.id}">#1</a></td>
+                    <td>
+                        <span class="badge" th:classappend="${r.mode.name() == 'FINAL'} ? 'info' : ''"
+                              th:text="${r.mode.label}">mode</span>
+                        <span th:if="${r.published}" class="badge ok">published</span>
+                    </td>
+                    <td th:text="${r.executedAtDisplay}">when</td>
+                    <td class="wrap faint" th:text="${r.note}">note</td>
+                    <td class="num tabular" th:text="${r.allotted}">600</td>
+                    <td class="num tabular" th:text="${r.waitlisted}">150</td>
+                    <td class="num tabular" th:text="${r.notSelected}">2500</td>
+                    <td class="num tabular" th:text="${r.excluded}">300</td>
+                    <td class="num tabular" th:text="${r.vacantSeats}">0</td>
+                    <td th:text="'v' + ${r.ruleSetVersion}">v1</td>
+                    <td><span class="chip" th:text="${r.shortResultsHash}">hash</span></td>
+                    <td><a th:href="@{/admin/draw/{id}(id=${r.id})}">open</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="faint mt1 mb0" style="font-size:0.84rem">
+            Two runs with the same rule version and the same set of applications will have the same results
+            hash. That is the quickest way to show a draw was not quietly re-rolled until it came out
+            differently.
+        </p>
+    </div>
+
+</div>
+</body>
+</html>

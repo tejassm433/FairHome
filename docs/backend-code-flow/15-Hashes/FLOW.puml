@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.support.Hashes
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :AllocationEngine token; RuleSetService contentHash; AuditEvent.entryHash;
+stop
+note right
+  SHA-256 hex for lottery tokens, rule file, audit chain, results hash.
+  Source: src/main/java/com/fairhome/support/Hashes.java
+end note
+@enduml

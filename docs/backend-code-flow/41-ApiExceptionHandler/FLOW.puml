@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.web.ApiExceptionHandler
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :422 intake, 400 bean validation, 409 draw refused;
+stop
+note right
+  Maps Intake/validation/rules/draw refusals to JSON status codes.
+  Source: src/main/java/com/fairhome/web/ApiExceptionHandler.java
+end note
+@enduml

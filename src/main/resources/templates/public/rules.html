@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Published rules', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-head">
+        <div class="eyebrow">Published policy</div>
+        <h1>The rules that decide the allotment</h1>
+        <p class="lead">
+            This is not a description of the rules. It is the rule file the allocation engine reads,
+            reproduced in full, with the hash that identifies this exact version. Nothing else influences
+            the outcome.
+        </p>
+    </div>
+
+    <div class="stack">
+
+    <div class="grid four">
+        <div class="stat accent">
+            <div class="label">Rule version</div>
+            <div class="value" th:text="${version.version}">1</div>
+            <div class="hint" th:text="${version.versionLabel}">v1</div>
+        </div>
+        <div class="stat">
+            <div class="label">Published</div>
+            <div class="value" style="font-size:1.05rem" th:text="${version.publishedAtDisplay}">date</div>
+            <div class="hint" th:text="'by ' + ${version.publishedBy}">by</div>
+        </div>
+        <div class="stat">
+            <div class="label">Flats</div>
+            <div class="value" th:text="${rules.totalFlats()}">600</div>
+            <div class="hint">in this phase</div>
+        </div>
+        <div class="stat">
+            <div class="label">Lottery seed</div>
+            <div class="value mono" style="font-size:0.9rem; word-break:break-all"
+                 th:text="${rules.draw().seed()}">seed</div>
+            <div class="hint" th:text="'published ' + ${rules.draw().seedPublishedOn()}">published</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="mt0">Content hash</h2>
+        <p class="muted" style="font-size:0.9rem">
+            SHA-256 of the rule file below. Every draw records the hash of the rules it ran under, so a
+            rule book cannot be quietly changed after a result is published.
+        </p>
+        <pre th:text="${version.contentHash}">hash</pre>
+        <div class="pill-row">
+            <a class="btn ghost small" th:href="@{/exports/rules/{v}.json(v=${version.version})}">
+                Download this rule file</a>
+            <a class="btn ghost small" th:href="@{/verify}">Verify a lottery position</a>
+            <a class="btn ghost small" th:href="@{/api/rules}">Same thing as JSON</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="mt0">How the draw is ordered</h2>
+        <p>
+            The lottery order is fixed by
+            <strong th:text="${rules.draw().rankStrategy()}">SEEDED_LOTTERY</strong>:
+        </p>
+        <pre>position key = SHA-256( "<span th:text="${rules.draw().seed()}">seed</span>" + ":" + application number )
+applications are sorted by that key, ascending</pre>
+        <p class="muted" th:text="${rules.draw().notes()}">notes</p>
+        <p class="muted mb0">
+            There is no random number generator, so there is nothing to trust about our machine or our
+            software version. Two strings go in, a hash comes out, and any SHA-256 tool gives the same
+            answer.
+        </p>
+    </div>
+
+    <div class="grid two">
+        <div class="card">
+            <h2 class="mt0">Eligibility</h2>
+            <table class="plain">
+                <tr><th>Minimum age</th><td th:text="${rules.eligibility().minAgeYears()}">21</td></tr>
+                <tr><th>Maximum age</th><td th:text="${rules.eligibility().maxAgeYears()}">70</td></tr>
+                <tr><th>Income must fall in a band</th>
+                    <td th:text="${rules.eligibility().requireIncomeWithinBands()} ? 'Yes' : 'No'">Yes</td></tr>
+                <tr><th>Final draw allowed while duplicate reviews are open</th>
+                    <td>
+                        <span th:if="${!rules.eligibility().allowFinalDrawWithOpenDuplicateReviews()}"
+                              class="badge ok">No</span>
+                        <span th:if="${rules.eligibility().allowFinalDrawWithOpenDuplicateReviews()}"
+                              class="badge held">Yes</span>
+                    </td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2 class="mt0">What happens to seats nobody claims</h2>
+            <table class="plain">
+                <tr><th>Reserved seat with no eligible claimant</th>
+                    <td th:text="${rules.spill().unfilledReservedSeats()}">SPILL_TO_OPEN</td></tr>
+                <tr><th>Category seat with no applicants left</th>
+                    <td th:text="${rules.spill().unfilledCategorySeats()}">POOL_BY_RANK</td></tr>
+                <tr><th>Waiting list size</th>
+                    <td th:text="${rules.waitlist().percentOfCategorySeats()} + '% of the seats in each category'">25%</td></tr>
+            </table>
+            <p class="faint mb0" style="font-size:0.84rem">
+                Deciding this in advance matters: an unclaimed reserved seat is exactly the kind of thing
+                that gets argued about afterwards if the policy was never written down.
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="mt0">Income categories</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Code</th><th class="wrap">Category</th><th class="wrap">Annual income band</th>
+                    <th class="num">Share of flats</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${rules.categories()}">
+                    <td><strong th:text="${c.code()}">EWS</strong></td>
+                    <td class="wrap" th:text="${c.label()}">label</td>
+                    <td class="wrap">
+                        <span th:if="${c.incomeMax() != null}"
+                              th:text="'₹' + ${#numbers.formatInteger(c.incomeMin(), 1, 'COMMA')} + ' – ₹' + ${#numbers.formatInteger(c.incomeMax(), 1, 'COMMA')}"></span>
+                        <span th:if="${c.incomeMax() == null}"
+                              th:text="'₹' + ${#numbers.formatInteger(c.incomeMin(), 1, 'COMMA')} + ' and above'"></span>
+                    </td>
+                    <td class="num" th:text="${c.quotaPercent()} + '%'">25%</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="mt0">Reserved quotas</h2>
+        <p class="muted" style="font-size:0.9rem">
+            Each of these is carved out of every income category, in the order listed. A qualifying
+            applicant gets first claim on the reserved seats and then competes for the open seats too.
+            "Existing area resident" is a reserved quota in its own right, not a tiebreaker.
+        </p>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Code</th><th class="wrap">Quota</th><th class="num">Share of each category</th>
+                    <th class="wrap">Test applied</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${rules.reservations()}">
+                    <td><strong th:text="${r.code()}">LOCAL</strong></td>
+                    <td class="wrap" th:text="${r.label()}">label</td>
+                    <td class="num" th:text="${r.percentOfCategory()} + '%'">30%</td>
+                    <td class="wrap">
+                        <span class="chip" th:text="${r.predicate()}">LOCAL_RESIDENT</span><br>
+                        <small class="faint" th:text="${predicates.get(r.predicate())}">description</small>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="faint mt1 mb0" style="font-size:0.84rem">
+            A quota can only refer to one of the tests above. They are fixed in the software and listed
+            here in full, so re-weighting a quota is a published edit but redefining what a quota
+            <em>means</em> is not something an operator can do quietly.
+        </p>
+    </div>
+
+    <div class="card">
+        <h2 class="mt0">The rule file itself</h2>
+        <p class="muted" style="font-size:0.9rem">
+            Byte for byte, what the engine read. This is the text the hash above was taken over.
+        </p>
+        <pre th:text="${version.json}">json</pre>
+    </div>
+
+    <div class="card">
+        <h2 class="mt0">Version history</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Version</th><th class="wrap">Label</th><th>Published</th><th>By</th>
+                    <th class="wrap">Change note</th><th>Hash</th><th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="v : ${history}">
+                    <td>
+                        <strong th:text="${v.version}">1</strong>
+                        <span th:if="${v.active}" class="badge ok">active</span>
+                    </td>
+                    <td class="wrap" th:text="${v.versionLabel}">v1</td>
+                    <td th:text="${v.publishedAtDisplay}">date</td>
+                    <td th:text="${v.publishedBy}">system</td>
+                    <td class="wrap" th:text="${v.changeNote}">note</td>
+                    <td><span class="chip" th:text="${v.shortHash}">hash</span></td>
+                    <td><a th:href="@{/exports/rules/{n}.json(n=${v.version})}">download</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    </div>
+
+</div>
+</body>
+</html>

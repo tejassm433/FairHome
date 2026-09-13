@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.FairhomeApplication
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :main() -> SpringApplication.run;\n  :DemoDataSeeder runs after context is ready;
+stop
+note right
+  Boots Spring Boot, loads FairHomeProperties, starts Tomcat on 8080.
+  Source: src/main/java/com/fairhome/FairhomeApplication.java
+end note
+@enduml

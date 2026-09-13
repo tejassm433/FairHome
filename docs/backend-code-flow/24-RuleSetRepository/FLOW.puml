@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.rules.RuleSetRepository
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :RuleSetService.history / activeVersion;
+stop
+note right
+  JPA store for rule versions.
+  Source: src/main/java/com/fairhome/rules/RuleSetRepository.java
+end note
+@enduml

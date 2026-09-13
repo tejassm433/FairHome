@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.rules.Gender
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :ApplicationForm.gender;
+stop
+note right
+  FEMALE, MALE, OTHER. WOMAN predicate uses FEMALE.
+  Source: src/main/java/com/fairhome/rules/Gender.java
+end note
+@enduml

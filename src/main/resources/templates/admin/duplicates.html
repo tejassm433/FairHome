@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Duplicate review queue', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div th:replace="~{fragments/bits :: trustedAdminNote}"></div>
+    <div th:replace="~{fragments/bits :: flash}"></div>
+
+    <div class="page-head">
+        <div class="eyebrow">Duplicate review</div>
+        <h1>Possible duplicates awaiting a decision</h1>
+        <p class="lead">
+            The detector never rejects anyone by itself. Each pair below was flagged at submission and both
+            applications are recorded in full; one of them is parked out of the draw until you decide.
+            Differing fields are highlighted.
+        </p>
+    </div>
+
+    <div class="banner success" th:if="${openCount == 0}">
+        <strong>The queue is empty</strong>
+        <span>Nothing is waiting on a decision, so a final draw is not blocked by this.</span>
+    </div>
+
+    <div th:each="item : ${queue}" class="dup-card">
+        <header>
+            <span class="badge waitlisted" th:text="${item.flag().matchType.label}">match</span>
+            <span class="badge" th:text="'confidence ' + ${item.flag().scorePercent} + '%'">90%</span>
+            <span class="faint" style="font-size:0.85rem"
+                  th:text="'flagged ' + ${item.flag().detectedAtDisplay}">flagged</span>
+        </header>
+
+        <div class="evidence" th:text="${item.flag().evidence}">evidence</div>
+
+        <div class="table-wrap">
+            <table class="compare">
+                <thead>
+                <tr>
+                    <th class="wrap">Field</th>
+                    <th class="wrap">
+                        Newer application<br>
+                        <a th:href="@{/admin/applications/{n}(n=${item.newApplication().applicationNumber})}"
+                           class="mono" th:text="${item.newApplication().applicationNumber}">FH-2</a>
+                        <span class="badge held" style="margin-left:0.3rem"
+                              th:if="${item.newApplication().status.name() == 'PENDING_DUPLICATE_REVIEW'}">held</span>
+                    </th>
+                    <th class="wrap">
+                        Earlier application<br>
+                        <a th:href="@{/admin/applications/{n}(n=${item.existingApplication().applicationNumber})}"
+                           class="mono" th:text="${item.existingApplication().applicationNumber}">FH-1</a>
+                        <span class="badge ok" style="margin-left:0.3rem"
+                              th:if="${item.existingApplication().status.name() == 'SUBMITTED'}">in the draw</span>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="row : ${item.comparison()}" th:classappend="${!row.same()} ? 'differs'">
+                    <td class="wrap muted" th:text="${row.label()}">field</td>
+                    <td class="wrap" th:text="${row.newValue()}">a</td>
+                    <td class="wrap" th:text="${row.existingValue()}">b</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <form class="resolve-form" th:action="@{/admin/duplicates/{id}/resolve(id=${item.flag().id})}"
+              method="post">
+            <input type="hidden" name="page" th:value="${pageNumber}">
+            <div class="form-row">
+                <div class="field">
+                    <label th:for="'keep-' + ${item.flag().id}">If it is a duplicate, which one stays in the draw?</label>
+                    <select th:id="'keep-' + ${item.flag().id}" name="keep">
+                        <option th:value="${item.existingApplication().applicationNumber}"
+                                th:text="${item.existingApplication().applicationNumber} + ' (the earlier one, applied '
+                                    + ${item.existingApplication().submittedOnDisplay} + ')'">earlier</option>
+                        <option th:value="${item.newApplication().applicationNumber}"
+                                th:text="${item.newApplication().applicationNumber} + ' (the newer one, applied '
+                                    + ${item.newApplication().submittedOnDisplay} + ')'">newer</option>
+                    </select>
+                    <div class="help">
+                        The earlier claim is kept by default: applying first should not be penalised because
+                        the system was unsure.
+                    </div>
+                </div>
+                <div class="field">
+                    <label th:for="'note-' + ${item.flag().id}">Reason for the decision</label>
+                    <input type="text" th:id="'note-' + ${item.flag().id}" name="note"
+                           placeholder="e.g. same person, second form submitted at the counter on 04 Feb">
+                    <div class="help">Goes on the audit trail. Write it as if it will be read out later.</div>
+                </div>
+            </div>
+            <div class="resolve-actions">
+                <button class="btn danger" type="submit" name="decision" value="CONFIRMED_DUPLICATE">
+                    Same person - reject the other one
+                </button>
+                <button class="btn" type="submit" name="decision" value="NOT_A_DUPLICATE">
+                    Different people - both stay in the draw
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div th:replace="~{fragments/bits :: pager(${results})}"></div>
+
+    <div class="card" th:if="${openCount > 0}">
+        <h3 class="mt0">How to read these</h3>
+        <p class="muted mb0" style="font-size:0.9rem">
+            A <strong>same national ID</strong> flag with everything else matching is almost always one
+            person submitting twice because they were unsure the first one went through. A
+            <strong>name and date of birth</strong> flag where the ID differs by one digit is usually a
+            typing error, either theirs or ours, and needs the physical forms compared. Two genuinely
+            different people sharing a birthday and a common name do happen, which is exactly why this
+            queue exists instead of an automatic delete.
+        </p>
+    </div>
+
+</div>
+</body>
+</html>

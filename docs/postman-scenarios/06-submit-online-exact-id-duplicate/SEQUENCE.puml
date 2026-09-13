@@ -1,0 +1,10 @@
+@startuml
+title Second form with the same national ID is held, not rejected
+skinparam backgroundColor #f8f1e3
+start
+  :IntakeService finds EXACT_NATIONAL_ID;
+  :status PENDING_DUPLICATE_REVIEW;
+  :DedupService.raiseFlags;
+  :201 with heldForReview true;
+stop
+@enduml

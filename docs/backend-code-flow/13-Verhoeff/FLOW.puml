@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.support.Verhoeff
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :NationalId.isStructurallyValid -> Verhoeff.isChecksumValid;
+stop
+note right
+  Aadhaar-style checksum used only by NationalId.
+  Source: src/main/java/com/fairhome/support/Verhoeff.java
+end note
+@enduml

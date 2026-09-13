@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+
+<!-- Flash messages set by redirecting POST handlers. -->
+<div th:fragment="flash">
+    <div class="banner success" th:if="${message}">
+        <strong>Done</strong>
+        <span th:text="${message}"></span>
+    </div>
+    <div class="banner error" th:if="${error}">
+        <strong>That did not go through</strong>
+        <span th:text="${error}"></span>
+    </div>
+</div>
+
+<div th:fragment="trustedAdminNote" class="trusted-admin-note">
+    <span>&#9888;</span>
+    <span style="flex:1">
+        Signed in as
+        <span class="chip" th:text="${officer}">officer</span>.
+        Actions on these screens are recorded against this username on the audit trail.
+    </span>
+    <form th:action="@{/admin/logout}" method="post" style="margin:0">
+        <button class="btn ghost small" type="submit">Sign out</button>
+    </form>
+</div>
+
+<!-- Outcome badge, coloured by the outcome name. -->
+<span th:fragment="outcomeBadge(outcome)" class="badge"
+      th:classappend="${outcome != null} ? ${#strings.toLowerCase(outcome.name())} : ''"
+      th:text="${outcome != null} ? ${outcome.label} : 'No decision yet'">badge</span>
+
+<span th:fragment="statusBadge(status)" class="badge"
+      th:classappend="${status.name() == 'SUBMITTED'} ? 'ok'
+          : (${status.name() == 'PENDING_DUPLICATE_REVIEW'} ? 'held' : 'rejected')"
+      th:text="${status.label}">badge</span>
+
+<div th:fragment="pager(pageObject)" class="pager" th:if="${pageObject != null}">
+    <span>
+        Showing
+        <strong th:text="${pageObject.numberOfElements}">0</strong> of
+        <strong th:text="${pageObject.totalElements}">0</strong>
+        &middot; page <span th:text="${pageObject.number + 1}">1</span> of
+        <span th:text="${pageObject.totalPages == 0} ? 1 : ${pageObject.totalPages}">1</span>
+    </span>
+    <span class="pill-row pager-nav" th:if="${pageObject.totalElements > 0}">
+        <a class="btn ghost small"
+           th:classappend="${!pageObject.hasPrevious()} ? 'is-disabled'"
+           th:href="@{''(
+               page=${pageObject.hasPrevious()} ? ${pageObject.number - 1} : ${pageObject.number},
+               q=${q},
+               outcome=${outcome},
+               category=${category},
+               status=${status},
+               channel=${channel})}">Previous</a>
+        <a class="btn ghost small"
+           th:classappend="${!pageObject.hasNext()} ? 'is-disabled'"
+           th:href="@{''(
+               page=${pageObject.hasNext()} ? ${pageObject.number + 1} : ${pageObject.number},
+               q=${q},
+               outcome=${outcome},
+               category=${category},
+               status=${status},
+               channel=${channel})}">Next</a>
+    </span>
+</div>
+
+</body>
+</html>

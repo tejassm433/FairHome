@@ -1,0 +1,8 @@
+[
+  {
+    "flagId": 1,
+    "matchType": "EXACT_NATIONAL_ID",
+    "newApplication": "FH-...",
+    "existingApplication": "FH-..."
+  }
+]

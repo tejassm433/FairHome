@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Applications', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div th:replace="~{fragments/bits :: flash}"></div>
+
+    <div class="page-head">
+        <div class="eyebrow">Register</div>
+        <h1>Applications</h1>
+        <p class="lead">
+            Search by name, application number, or the last four digits of the national ID. Full ID numbers
+            are never displayed or exported.
+        </p>
+    </div>
+
+    <form class="filters" th:action="@{/admin/applications}" method="get">
+        <div class="field" style="min-width:260px">
+            <label for="q">Search</label>
+            <input type="search" id="q" name="q" th:value="${q}"
+                   placeholder="name, FH-2026-000123, or last 4 digits">
+        </div>
+        <div class="field">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+                <option value="">Any</option>
+                <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}"
+                        th:selected="${status != null and status.name() == s.name()}">status</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="channel">Channel</label>
+            <select id="channel" name="channel">
+                <option value="">Any</option>
+                <option th:each="c : ${channels}" th:value="${c}" th:text="${c.label}"
+                        th:selected="${channel != null and channel.name() == c.name()}">channel</option>
+            </select>
+        </div>
+        <button class="btn" type="submit">Search</button>
+        <a class="btn ghost" th:href="@{/admin/applications}">Clear</a>
+        <a class="btn ghost" th:href="@{/exports/applications.csv}">Export CSV</a>
+    </form>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>Number</th><th class="wrap">Applicant</th><th>Born</th><th>ID</th>
+                <th>Channel</th><th>Applied</th><th class="num">Income</th>
+                <th class="num">Years here</th><th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="a : ${results.content}">
+                <td><a th:href="@{/admin/applications/{n}(n=${a.applicationNumber})}" class="mono"
+                       th:text="${a.applicationNumber}">FH-1</a></td>
+                <td class="wrap" th:text="${a.fullName}">name</td>
+                <td th:text="${a.dateOfBirthDisplay}">dob</td>
+                <td class="mono faint" th:text="${a.nationalIdLast4}">1234</td>
+                <td th:text="${a.channel.name() == 'ONLINE'} ? 'Online' : 'Paper'">Online</td>
+                <td th:text="${a.submittedOnDisplay}">date</td>
+                <td class="num tabular"
+                    th:text="${#numbers.formatInteger(a.annualIncome, 1, 'COMMA')}">400,000</td>
+                <td class="num tabular" th:text="${a.yearsInArea}">5</td>
+                <td><span th:replace="~{fragments/bits :: statusBadge(${a.status})}"></span></td>
+            </tr>
+            <tr th:if="${results.totalElements == 0}">
+                <td colspan="9" class="muted" style="text-align:center; padding:2rem">
+                    Nothing matches that search.
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:replace="~{fragments/bits :: pager(${results})}"></div>
+
+</div>
+</body>
+</html>

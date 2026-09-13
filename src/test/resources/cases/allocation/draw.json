@@ -1,0 +1,167 @@
+{
+  "cases": [
+    {
+      "name": "an under-age application is excluded before any seat is considered",
+      "input": {
+        "drawDate": "2026-09-12",
+        "rules": {
+          "schemeName": "Test",
+          "rulesVersionLabel": "test",
+          "effectiveFrom": "2026-01-01",
+          "totalFlats": 1,
+          "draw": { "rankStrategy": "SEEDED_LOTTERY", "seed": "TEST-SEED", "seedPublishedOn": "2026-01-01", "notes": "" },
+          "eligibility": { "minAgeYears": 21, "maxAgeYears": 70, "requireIncomeWithinBands": true, "allowFinalDrawWithOpenDuplicateReviews": false },
+          "categories": [
+            { "code": "EWS", "label": "EWS", "quotaPercent": 100, "incomeMin": 0, "incomeMax": null }
+          ],
+          "reservations": [],
+          "localResident": { "minYearsInArea": 3, "areaLabel": "area" },
+          "spill": { "unfilledReservedSeats": "SPILL_TO_OPEN", "unfilledCategorySeats": "HOLD_VACANT" },
+          "waitlist": { "percentOfCategorySeats": 0 },
+          "duplicateDetection": { "holdExactNationalIdForReview": true, "nameSimilarityThreshold": 0.88, "holdScoreThreshold": 0.8, "matchOnPhone": true, "matchOnEmail": true }
+        },
+        "applications": [
+          {
+            "applicationNumber": "FH-TEST-YOUNG",
+            "fullName": "Young Applicant",
+            "dateOfBirth": "2010-01-01",
+            "annualIncome": 120000,
+            "status": "SUBMITTED"
+          }
+        ]
+      },
+      "expected": {
+        "allotted": 0,
+        "excluded": 1,
+        "vacantSeats": 1,
+        "repeatable": true,
+        "byApplication": {
+          "FH-TEST-YOUNG": {
+            "outcome": "EXCLUDED",
+            "reasonCode": "ELIGIBILITY_AGE"
+          }
+        }
+      }
+    },
+    {
+      "name": "a held duplicate never enters the lottery",
+      "input": {
+        "drawDate": "2026-09-12",
+        "rules": {
+          "schemeName": "Test",
+          "rulesVersionLabel": "test",
+          "effectiveFrom": "2026-01-01",
+          "totalFlats": 1,
+          "draw": { "rankStrategy": "SEEDED_LOTTERY", "seed": "TEST-SEED", "seedPublishedOn": "2026-01-01", "notes": "" },
+          "eligibility": { "minAgeYears": 21, "maxAgeYears": 70, "requireIncomeWithinBands": true, "allowFinalDrawWithOpenDuplicateReviews": false },
+          "categories": [
+            { "code": "EWS", "label": "EWS", "quotaPercent": 100, "incomeMin": 0, "incomeMax": null }
+          ],
+          "reservations": [],
+          "localResident": { "minYearsInArea": 3, "areaLabel": "area" },
+          "spill": { "unfilledReservedSeats": "SPILL_TO_OPEN", "unfilledCategorySeats": "HOLD_VACANT" },
+          "waitlist": { "percentOfCategorySeats": 0 },
+          "duplicateDetection": { "holdExactNationalIdForReview": true, "nameSimilarityThreshold": 0.88, "holdScoreThreshold": 0.8, "matchOnPhone": true, "matchOnEmail": true }
+        },
+        "applications": [
+          {
+            "applicationNumber": "FH-TEST-HELD",
+            "fullName": "Held Applicant",
+            "dateOfBirth": "1990-01-01",
+            "annualIncome": 120000,
+            "status": "PENDING_DUPLICATE_REVIEW"
+          }
+        ]
+      },
+      "expected": {
+        "allotted": 0,
+        "excluded": 1,
+        "consideredInDraw": 0,
+        "byApplication": {
+          "FH-TEST-HELD": {
+            "outcome": "EXCLUDED",
+            "reasonCode": "STATUS_PENDING_DUPLICATE_REVIEW"
+          }
+        }
+      }
+    },
+    {
+      "name": "local residents take the reserved seats; everyone else competes for the open seats",
+      "input": {
+        "drawDate": "2026-09-12",
+        "rules": {
+          "schemeName": "Test",
+          "rulesVersionLabel": "test",
+          "effectiveFrom": "2026-01-01",
+          "totalFlats": 4,
+          "draw": { "rankStrategy": "SEEDED_LOTTERY", "seed": "TEST-SEED", "seedPublishedOn": "2026-01-01", "notes": "" },
+          "eligibility": { "minAgeYears": 21, "maxAgeYears": 70, "requireIncomeWithinBands": true, "allowFinalDrawWithOpenDuplicateReviews": false },
+          "categories": [
+            { "code": "EWS", "label": "EWS", "quotaPercent": 100, "incomeMin": 0, "incomeMax": null }
+          ],
+          "reservations": [
+            { "code": "LOCAL", "label": "Existing residents", "predicate": "LOCAL_RESIDENT", "percentOfCategory": 50 }
+          ],
+          "localResident": { "minYearsInArea": 3, "areaLabel": "area" },
+          "spill": { "unfilledReservedSeats": "SPILL_TO_OPEN", "unfilledCategorySeats": "HOLD_VACANT" },
+          "waitlist": { "percentOfCategorySeats": 25 },
+          "duplicateDetection": { "holdExactNationalIdForReview": true, "nameSimilarityThreshold": 0.88, "holdScoreThreshold": 0.8, "matchOnPhone": true, "matchOnEmail": true }
+        },
+        "applications": [
+          { "applicationNumber": "FH-LOCAL-A", "fullName": "Local A", "dateOfBirth": "1985-03-01", "annualIncome": 180000, "yearsInArea": 10, "gender": "FEMALE" },
+          { "applicationNumber": "FH-LOCAL-B", "fullName": "Local B", "dateOfBirth": "1986-03-01", "annualIncome": 190000, "yearsInArea": 8, "gender": "MALE" },
+          { "applicationNumber": "FH-OPEN-A", "fullName": "Outsider A", "dateOfBirth": "1987-03-01", "annualIncome": 200000, "yearsInArea": 0, "gender": "MALE" },
+          { "applicationNumber": "FH-OPEN-B", "fullName": "Outsider B", "dateOfBirth": "1988-03-01", "annualIncome": 210000, "yearsInArea": 1, "gender": "FEMALE" },
+          { "applicationNumber": "FH-OPEN-C", "fullName": "Outsider C", "dateOfBirth": "1989-03-01", "annualIncome": 220000, "yearsInArea": 0, "gender": "MALE" }
+        ]
+      },
+      "expected": {
+        "allotted": 4,
+        "waitlisted": 1,
+        "notSelected": 0,
+        "excluded": 0,
+        "vacantSeats": 0,
+        "repeatable": true,
+        "byApplication": {
+          "FH-LOCAL-A": { "outcome": "ALLOTTED", "poolCode": "LOCAL", "categoryCode": "EWS" },
+          "FH-LOCAL-B": { "outcome": "ALLOTTED", "poolCode": "LOCAL", "categoryCode": "EWS" }
+        }
+      }
+    },
+    {
+      "name": "running the same inputs twice produces the same results hash",
+      "input": {
+        "drawDate": "2026-09-12",
+        "rules": {
+          "schemeName": "Test",
+          "rulesVersionLabel": "test",
+          "effectiveFrom": "2026-01-01",
+          "totalFlats": 2,
+          "draw": { "rankStrategy": "SEEDED_LOTTERY", "seed": "TEST-SEED", "seedPublishedOn": "2026-01-01", "notes": "" },
+          "eligibility": { "minAgeYears": 21, "maxAgeYears": 70, "requireIncomeWithinBands": true, "allowFinalDrawWithOpenDuplicateReviews": false },
+          "categories": [
+            { "code": "EWS", "label": "EWS", "quotaPercent": 50, "incomeMin": 0, "incomeMax": 300000 },
+            { "code": "LIG", "label": "LIG", "quotaPercent": 50, "incomeMin": 300001, "incomeMax": null }
+          ],
+          "reservations": [],
+          "localResident": { "minYearsInArea": 3, "areaLabel": "area" },
+          "spill": { "unfilledReservedSeats": "SPILL_TO_OPEN", "unfilledCategorySeats": "HOLD_VACANT" },
+          "waitlist": { "percentOfCategorySeats": 0 },
+          "duplicateDetection": { "holdExactNationalIdForReview": true, "nameSimilarityThreshold": 0.88, "holdScoreThreshold": 0.8, "matchOnPhone": true, "matchOnEmail": true }
+        },
+        "applications": [
+          { "applicationNumber": "FH-EWS-1", "fullName": "Ews One", "dateOfBirth": "1980-01-01", "annualIncome": 150000 },
+          { "applicationNumber": "FH-LIG-1", "fullName": "Lig One", "dateOfBirth": "1981-01-01", "annualIncome": 450000 },
+          { "applicationNumber": "FH-LIG-2", "fullName": "Lig Two", "dateOfBirth": "1982-01-01", "annualIncome": 500000 }
+        ]
+      },
+      "expected": {
+        "allotted": 2,
+        "repeatable": true,
+        "byApplication": {
+          "FH-EWS-1": { "outcome": "ALLOTTED", "categoryCode": "EWS", "poolCode": "OPEN" }
+        }
+      }
+    }
+  ]
+}

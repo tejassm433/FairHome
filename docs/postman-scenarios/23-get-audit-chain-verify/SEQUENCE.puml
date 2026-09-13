@@ -1,0 +1,8 @@
+@startuml
+title Verify the hash-chained audit log
+skinparam backgroundColor #f8f1e3
+start
+  :AuditService.verifyChain;
+  :canonicalPayload uses epoch millis;
+stop
+@enduml

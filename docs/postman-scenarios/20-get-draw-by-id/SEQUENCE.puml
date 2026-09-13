@@ -1,0 +1,8 @@
+@startuml
+title Inspect one run plus category summary and workings
+skinparam backgroundColor #f8f1e3
+start
+  :ApiController.draw;
+  :DrawService.findRun + categorySummary;
+stop
+@enduml

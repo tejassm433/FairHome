@@ -1,0 +1,661 @@
+{
+  "info": {
+    "name": "FairHome Allocation API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Generated docs only. Base http://localhost:8080"
+  },
+  "item": [
+    {
+      "name": "Submit a clean online application",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8080/api/applications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Ananya Reddy\",\n  \"dateOfBirth\": \"1992-03-14\",\n  \"gender\": \"FEMALE\",\n  \"nationalId\": \"234567890124\",\n  \"phone\": \"9876543210\",\n  \"email\": \"ananya.reddy@example.com\",\n  \"addressLine\": \"12 Ward Road, North Zone\",\n  \"cityOrWard\": \"Ward 12\",\n  \"postalCode\": \"560001\",\n  \"annualIncome\": 420000,\n  \"yearsInArea\": 9,\n  \"differentlyAbled\": false,\n  \"exServiceman\": false,\n  \"firstTimeHomeBuyer\": true,\n  \"declarationAccepted\": true\n}"
+        }
+      }
+    },
+    {
+      "name": "Reject a national ID that fails Verhoeff",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8080/api/applications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Ananya Reddy\",\n  \"dateOfBirth\": \"1992-03-14\",\n  \"gender\": \"FEMALE\",\n  \"nationalId\": \"234567890120\",\n  \"phone\": \"9876543210\",\n  \"email\": \"ananya.reddy@example.com\",\n  \"addressLine\": \"12 Ward Road, North Zone\",\n  \"cityOrWard\": \"Ward 12\",\n  \"postalCode\": \"560001\",\n  \"annualIncome\": 420000,\n  \"yearsInArea\": 9,\n  \"differentlyAbled\": false,\n  \"exServiceman\": false,\n  \"firstTimeHomeBuyer\": true,\n  \"declarationAccepted\": true\n}"
+        }
+      }
+    },
+    {
+      "name": "Reject an applicant younger than 21",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8080/api/applications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Ananya Reddy\",\n  \"dateOfBirth\": \"2015-01-01\",\n  \"gender\": \"FEMALE\",\n  \"nationalId\": \"456789012341\",\n  \"phone\": \"9876543210\",\n  \"email\": \"ananya.reddy@example.com\",\n  \"addressLine\": \"12 Ward Road, North Zone\",\n  \"cityOrWard\": \"Ward 12\",\n  \"postalCode\": \"560001\",\n  \"annualIncome\": 420000,\n  \"yearsInArea\": 9,\n  \"differentlyAbled\": false,\n  \"exServiceman\": false,\n  \"firstTimeHomeBuyer\": true,\n  \"declarationAccepted\": true\n}"
+        }
+      }
+    },
+    {
+      "name": "Reject when declarationAccepted is false",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8080/api/applications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Ananya Reddy\",\n  \"dateOfBirth\": \"1992-03-14\",\n  \"gender\": \"FEMALE\",\n  \"nationalId\": \"567890123458\",\n  \"phone\": \"9876543210\",\n  \"email\": \"ananya.reddy@example.com\",\n  \"addressLine\": \"12 Ward Road, North Zone\",\n  \"cityOrWard\": \"Ward 12\",\n  \"postalCode\": \"560001\",\n  \"annualIncome\": 420000,\n  \"yearsInArea\": 9,\n  \"differentlyAbled\": false,\n  \"exServiceman\": false,\n  \"firstTimeHomeBuyer\": true,\n  \"declarationAccepted\": false\n}"
+        }
+      }
+    },
+    {
+      "name": "Officer keys a paper form (HTTP Basic)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic YWRtaW46RmFpckhvbWVAMjAyNg=="
+          }
+        ],
+        "url": "http://localhost:8080/api/admin/applications/offline",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin"
+            },
+            {
+              "key": "password",
+              "value": "FairHome@2026"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Rahul Reddy\",\n  \"dateOfBirth\": \"1992-03-14\",\n  \"gender\": \"FEMALE\",\n  \"nationalId\": \"345678901238\",\n  \"phone\": \"9876543211\",\n  \"email\": \"rahul.reddy@example.com\",\n  \"addressLine\": \"12 Ward Road, North Zone\",\n  \"cityOrWard\": \"Ward 12\",\n  \"postalCode\": \"560001\",\n  \"annualIncome\": 420000,\n  \"yearsInArea\": 9,\n  \"differentlyAbled\": false,\n  \"exServiceman\": false,\n  \"firstTimeHomeBuyer\": true,\n  \"declarationAccepted\": true,\n  \"recordedBy\": \"Desk 1\",\n  \"paperReference\": \"CTR-2026-1104\",\n  \"paperSubmittedOn\": \"2026-01-20\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Second form with the same national ID is held, not rejected",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8080/api/applications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Ananya R\",\n  \"dateOfBirth\": \"1992-03-14\",\n  \"gender\": \"FEMALE\",\n  \"nationalId\": \"234567890124\",\n  \"phone\": \"9876543210\",\n  \"email\": \"ananya2@example.com\",\n  \"addressLine\": \"12 Ward Road, North Zone\",\n  \"cityOrWard\": \"Ward 12\",\n  \"postalCode\": \"560001\",\n  \"annualIncome\": 420000,\n  \"yearsInArea\": 9,\n  \"differentlyAbled\": false,\n  \"exServiceman\": false,\n  \"firstTimeHomeBuyer\": true,\n  \"declarationAccepted\": true\n}"
+        }
+      }
+    },
+    {
+      "name": "Same name + DOB, different valid ID -> queue",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8080/api/applications",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Ananya Reddy\",\n  \"dateOfBirth\": \"1992-03-14\",\n  \"gender\": \"FEMALE\",\n  \"nationalId\": \"678901234560\",\n  \"phone\": \"9998887776\",\n  \"email\": \"ananya.lookalike@example.com\",\n  \"addressLine\": \"12 Ward Road, North Zone\",\n  \"cityOrWard\": \"Ward 12\",\n  \"postalCode\": \"560001\",\n  \"annualIncome\": 420000,\n  \"yearsInArea\": 9,\n  \"differentlyAbled\": false,\n  \"exServiceman\": false,\n  \"firstTimeHomeBuyer\": true,\n  \"declarationAccepted\": true\n}"
+        }
+      }
+    },
+    {
+      "name": "Applicant status with receipt code, no published draw yet",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8080/api/applications/FH-2026-REPLACE/status?referenceCode=REPLACE"
+      }
+    },
+    {
+      "name": "Wrong receipt code is 404, not a leak",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8080/api/applications/FH-2026-REPLACE/status?referenceCode=WRONG"
+      }
+    },
+    {
+      "name": "Read the active published rule book",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8080/api/rules"
+      }
+    },
+    {
+      "name": "List every published rule version",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8080/api/rules/history"
+      }
+    },
+    {
+      "name": "Publish a new rule version (HTTP Basic)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic YWRtaW46RmFpckhvbWVAMjAyNg=="
+          }
+        ],
+        "url": "http://localhost:8080/api/admin/rules",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin"
+            },
+            {
+              "key": "password",
+              "value": "FairHome@2026"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"note\": \"Postman test: republish shipped bands with an explicit note\",\n  \"rules\": {\n    \"schemeName\": \"FairHome Phase-1 Housing Scheme 2026\",\n    \"rulesVersionLabel\": \"v-postman-test\",\n    \"effectiveFrom\": \"2026-01-15\",\n    \"totalFlats\": 600,\n    \"draw\": {\n      \"rankStrategy\": \"SEEDED_LOTTERY\",\n      \"seed\": \"FAIRHOME-2026-PHASE1-PUBLIC-SEED-8QK4TZ\",\n      \"seedPublishedOn\": \"2026-01-15\",\n      \"notes\": \"SHA-256 of seed + ':' + application number, ascending\"\n    },\n    \"eligibility\": {\n      \"minAgeYears\": 21,\n      \"maxAgeYears\": 70,\n      \"requireIncomeWithinBands\": true,\n      \"allowFinalDrawWithOpenDuplicateReviews\": false\n    },\n    \"categories\": [\n      {\n        \"code\": \"EWS\",\n        \"label\": \"Economically Weaker Section\",\n        \"quotaPercent\": 25,\n        \"incomeMin\": 0,\n        \"incomeMax\": 300000\n      },\n      {\n        \"code\": \"LIG\",\n        \"label\": \"Low Income Group\",\n        \"quotaPercent\": 35,\n        \"incomeMin\": 300001,\n        \"incomeMax\": 600000\n      },\n      {\n        \"code\": \"MIG\",\n        \"label\": \"Middle Income Group\",\n        \"quotaPercent\": 30,\n        \"incomeMin\": 600001,\n        \"incomeMax\": 1200000\n      },\n      {\n        \"code\": \"HIG\",\n        \"label\": \"Higher Income Group\",\n        \"quotaPercent\": 10,\n        \"incomeMin\": 1200001,\n        \"incomeMax\": null\n      }\n    ],\n    \"reservations\": [\n      {\n        \"code\": \"LOCAL\",\n        \"label\": \"Existing residents\",\n        \"predicate\": \"LOCAL_RESIDENT\",\n        \"percentOfCategory\": 30\n      },\n      {\n        \"code\": \"PWD\",\n        \"label\": \"Disability\",\n        \"predicate\": \"DIFFERENTLY_ABLED\",\n        \"percentOfCategory\": 5\n      },\n      {\n        \"code\": \"WOMEN\",\n        \"label\": \"Women\",\n        \"predicate\": \"WOMAN\",\n        \"percentOfCategory\": 10\n      },\n      {\n        \"code\": \"ESM\",\n        \"label\": \"Ex-servicemen\",\n        \"predicate\": \"EX_SERVICEMAN\",\n        \"percentOfCategory\": 5\n      }\n    ],\n    \"localResident\": {\n      \"minYearsInArea\": 3,\n      \"areaLabel\": \"Ward 12 to 18, North Zone\"\n    },\n    \"spill\": {\n      \"unfilledReservedSeats\": \"SPILL_TO_OPEN\",\n      \"unfilledCategorySeats\": \"POOL_BY_RANK\"\n    },\n    \"waitlist\": {\n      \"percentOfCategorySeats\": 25\n    },\n    \"duplicateDetection\": {\n      \"holdExactNationalIdForReview\": true,\n      \"nameSimilarityThreshold\": 0.88,\n      \"holdScoreThreshold\": 0.8,\n      \"matchOnPhone\": true,\n      \"matchOnEmail\": true\n    }\n  }\n}"
+        }
+      }
+    },
+    {
+      "name": "List open duplicate flags",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic YWRtaW46RmFpckhvbWVAMjAyNg=="
+          }
+        ],
+        "url": "http://localhost:8080/api/admin/duplicates",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin"
+            },
+            {
+              "key": "password",
+              "value": "FairHome@2026"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Different people, both stay in the draw",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic YWRtaW46RmFpckhvbWVAMjAyNg=="
+          }
+        ],
+        "url": "http://localhost:8080/api/admin/duplicates/REPLACE_FLAG_ID/resolve",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin"
+            },
+            {
+              "key": "password",
+              "value": "FairHome@2026"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"decision\": \"NOT_A_DUPLICATE\",\n  \"note\": \"Sibling pair, physical forms compared\",\n  \"officer\": \"Desk 1\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Same person: keep one, reject the other",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic YWRtaW46RmFpckhvbWVAMjAyNg=="
+          }
+        ],
+        "url": "http://localhost:8080/api/admin/duplicates/REPLACE_FLAG_ID/resolve",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin"
+            },
+            {
+              "key": "password",
+              "value": "FairHome@2026"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"decision\": \"CONFIRMED_DUPLICATE\",\n  \"keep\": \"FH-2026-REPLACE_KEEP\",\n  \"note\": \"Same person, second form at the counter\",\n  \"officer\": \"Desk 1\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Run a dry run (allowed even with an open queue)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic YWRtaW46RmFpckhvbWVAMjAyNg=="
+          }
+        ],
+        "url": "http://localhost:8080/api/admin/draws?mode=DRY_RUN&note=postman-rehearsal",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin"
+            },
+            {
+              "key": "password",
+              "value": "FairHome@2026"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Final draw refused while flags are open",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic YWRtaW46RmFpckhvbWVAMjAyNg=="
+          }
+        ],
+        "url": "http://localhost:8080/api/admin/draws?mode=FINAL&note=should-fail",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin"
+            },
+            {
+              "key": "password",
+              "value": "FairHome@2026"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Final draw after the queue is clear",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic YWRtaW46RmFpckhvbWVAMjAyNg=="
+          }
+        ],
+        "url": "http://localhost:8080/api/admin/draws?mode=FINAL&note=official-postman",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin"
+            },
+            {
+              "key": "password",
+              "value": "FairHome@2026"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Publish a FINAL run as the official result",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic YWRtaW46RmFpckhvbWVAMjAyNg=="
+          }
+        ],
+        "url": "http://localhost:8080/api/admin/draws/REPLACE_RUN_ID/publish",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin"
+            },
+            {
+              "key": "password",
+              "value": "FairHome@2026"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Inspect one run plus category summary and workings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic YWRtaW46RmFpckhvbWVAMjAyNg=="
+          }
+        ],
+        "url": "http://localhost:8080/api/draws/REPLACE_RUN_ID",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin"
+            },
+            {
+              "key": "password",
+              "value": "FairHome@2026"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Public results list (empty until a FINAL is published)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8080/api/results"
+      }
+    },
+    {
+      "name": "Recompute SHA-256(seed : applicationNumber)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://localhost:8080/api/verify?applicationNumber=FH-2026-004128"
+      }
+    },
+    {
+      "name": "Verify the hash-chained audit log",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic YWRtaW46RmFpckhvbWVAMjAyNg=="
+          }
+        ],
+        "url": "http://localhost:8080/api/admin/audit/verify",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin"
+            },
+            {
+              "key": "password",
+              "value": "FairHome@2026"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "List every draw run",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Basic YWRtaW46RmFpckhvbWVAMjAyNg=="
+          }
+        ],
+        "url": "http://localhost:8080/api/draws",
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "admin"
+            },
+            {
+              "key": "password",
+              "value": "FairHome@2026"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

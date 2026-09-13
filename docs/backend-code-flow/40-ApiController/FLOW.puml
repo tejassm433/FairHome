@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.web.ApiController
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :See docs/postman-scenarios;
+stop
+note right
+  JSON facade /api/** used by Postman. Same services as the HTML screens.
+  Source: src/main/java/com/fairhome/web/ApiController.java
+end note
+@enduml

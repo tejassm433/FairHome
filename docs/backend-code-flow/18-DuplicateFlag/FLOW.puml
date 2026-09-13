@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.dedup.DuplicateFlag
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :raiseFlags saves OPEN; resolve updates resolution;
+stop
+note right
+  Stored suspicion: new vs existing, match type, score, resolution.
+  Source: src/main/java/com/fairhome/dedup/DuplicateFlag.java
+end note
+@enduml

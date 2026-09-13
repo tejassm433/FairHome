@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.rules.RuleSetService
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :PUT /api/admin/rules -> publish; GET /api/rules -> activeVersion + parse;
+stop
+note right
+  Load, validate, canonicalise, hash, publish. Bootstraps shipped default.
+  Source: src/main/java/com/fairhome/rules/RuleSetService.java
+end note
+@enduml

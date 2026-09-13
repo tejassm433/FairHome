@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.config.SecurityConfig
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :Request -> apiAdminSecurity OR webSecurity -> controller;
+stop
+note right
+  Two filter chains: /api/admin/** HTTP Basic; browser /admin form login; public API open.
+  Source: src/main/java/com/fairhome/config/SecurityConfig.java
+end note
+@enduml

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Officer sign in', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-head">
+        <div class="eyebrow">Allotment office</div>
+        <h1>Sign in to the admin console</h1>
+        <p class="lead">
+            Paper entry, the duplicate queue, the rule book and the draw are only available after an
+            officer signs in. Applicants do not use this screen.
+        </p>
+    </div>
+
+    <div class="banner error" th:if="${loginError}">
+        <strong>Sign in failed</strong>
+        <span>That username or password is not right. Please try again.</span>
+    </div>
+    <div class="banner success" th:if="${loggedOut}">
+        <strong>Signed out</strong>
+        <span>The session is closed. Sign in again to go back to the console.</span>
+    </div>
+
+    <div class="card" style="max-width:440px">
+        <form th:action="@{/admin/login}" method="post">
+            <div class="field">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" autocomplete="username" required autofocus>
+            </div>
+            <div class="field">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" autocomplete="current-password" required>
+            </div>
+            <div class="form-actions">
+                <button class="btn" type="submit">Sign in</button>
+                <a class="btn ghost" th:href="@{/}">Back to the scheme</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

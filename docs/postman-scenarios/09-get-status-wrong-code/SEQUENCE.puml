@@ -1,0 +1,8 @@
+@startuml
+title Wrong receipt code is 404, not a leak
+skinparam backgroundColor #f8f1e3
+start
+  :ApiController.status mismatch;
+  :404 generic message;
+stop
+@enduml

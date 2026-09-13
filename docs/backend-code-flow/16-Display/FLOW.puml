@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.support.Display
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :Thymeleaf getters only;
+stop
+note right
+  Date/time formatting for screens. Not on the JSON API path.
+  Source: src/main/java/com/fairhome/support/Display.java
+end note
+@enduml

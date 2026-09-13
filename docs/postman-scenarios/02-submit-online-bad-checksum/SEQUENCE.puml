@@ -1,0 +1,11 @@
+@startuml
+title Reject a national ID that fails Verhoeff
+skinparam backgroundColor #f8f1e3
+start
+  :ApiController.register;
+  :IntakeService.intake;
+  :NationalId.isStructurallyValid false;
+  :IntakeException;
+  :ApiExceptionHandler 422;
+stop
+@enduml

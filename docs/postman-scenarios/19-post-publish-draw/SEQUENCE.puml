@@ -1,0 +1,8 @@
+@startuml
+title Publish a FINAL run as the official result
+skinparam backgroundColor #f8f1e3
+start
+  :DrawService.publish;
+  :applicants can now see /api/.../status draw block and /api/results;
+stop
+@enduml

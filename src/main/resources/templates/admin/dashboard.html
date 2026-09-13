@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Admin console', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div th:replace="~{fragments/bits :: trustedAdminNote}"></div>
+    <div th:replace="~{fragments/bits :: flash}"></div>
+
+    <div class="page-head">
+        <div class="eyebrow">Allotment office</div>
+        <h1>Admin console</h1>
+        <p class="lead" th:text="${rules.schemeName()}">scheme</p>
+    </div>
+
+    <div class="stack">
+
+    <div class="grid four">
+        <div class="stat">
+            <div class="label">Applications on file</div>
+            <div class="value" th:text="${total}">4000</div>
+            <div class="hint" th:text="${online} + ' online · ' + ${offline} + ' from paper'">split</div>
+        </div>
+        <div class="stat success">
+            <div class="label">In the draw</div>
+            <div class="value" th:text="${inDraw}">3600</div>
+            <div class="hint">accepted, no duplicate suspicion</div>
+        </div>
+        <div class="stat warn">
+            <div class="label">Held for duplicate review</div>
+            <div class="value" th:text="${held}">300</div>
+            <div class="hint" th:text="${openFlags} + ' open flag(s) in the queue'">flags</div>
+        </div>
+        <div class="stat danger">
+            <div class="label">Rejected as duplicates</div>
+            <div class="value" th:text="${rejectedDuplicates}">100</div>
+            <div class="hint" th:text="${withdrawn} + ' withdrawn'">withdrawn</div>
+        </div>
+    </div>
+
+    <div class="banner warn" th:if="${openFlags > 0}">
+        <strong th:text="${openFlags} + ' possible duplicate(s) still need a decision'">flags</strong>
+        <span>
+            The published rules block a final draw while any remain open, because a duplicate resolved
+            after the draw would change who gets a flat.
+            <a th:href="@{/admin/duplicates}">Work through the queue</a>.
+        </span>
+    </div>
+
+    <div class="grid two">
+        <div class="card">
+            <h2 class="mt0">Do something</h2>
+            <div class="pill-row">
+                <a class="btn" th:href="@{/admin/offline-entry}">Enter a paper application</a>
+                <a class="btn ghost" th:href="@{/admin/duplicates}">Duplicate review queue</a>
+                <a class="btn ghost" th:href="@{/admin/draw}">Run or review a draw</a>
+                <a class="btn ghost" th:href="@{/admin/applications}">Search applications</a>
+                <a class="btn ghost" th:href="@{/admin/rules}">Edit the rule book</a>
+                <a class="btn ghost" th:href="@{/admin/audit}">Audit trail
+                    (<span th:text="${auditCount}">0</span>)</a>
+            </div>
+            <hr>
+            <h3>Exports</h3>
+            <div class="pill-row">
+                <a class="btn ghost small" th:href="@{/exports/applications.csv}">Application register (CSV)</a>
+                <a class="btn ghost small" th:href="@{/exports/audit.csv}">Audit trail (CSV)</a>
+                <a class="btn ghost small" th:href="@{/h2-console}">Database console</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="mt0">Active rule book</h2>
+            <table class="plain">
+                <tr><th>Version</th>
+                    <td><strong th:text="${ruleVersion.version}">1</strong>
+                        <span class="faint" th:text="' · ' + ${ruleVersion.versionLabel}"></span></td></tr>
+                <tr><th>Content hash</th>
+                    <td><span class="chip" th:text="${ruleVersion.shortHash}">hash</span></td></tr>
+                <tr><th>Published</th>
+                    <td th:text="${ruleVersion.publishedAtDisplay} + ' by ' + ${ruleVersion.publishedBy}">when</td></tr>
+                <tr><th>Flats</th><td th:text="${rules.totalFlats()}">600</td></tr>
+                <tr><th>Lottery seed</th>
+                    <td><span class="chip" th:text="${rules.draw().seed()}">seed</span></td></tr>
+                <tr><th>Categories</th>
+                    <td>
+                        <span th:each="c, i : ${rules.categories()}">
+                            <span th:text="${c.code()} + ' ' + ${c.quotaPercent()} + '%'">EWS 25%</span>
+                            <span th:if="${!i.last}">· </span>
+                        </span>
+                    </td></tr>
+                <tr><th>Reservations</th>
+                    <td>
+                        <span th:each="r, i : ${rules.reservations()}">
+                            <span th:text="${r.code()} + ' ' + ${r.percentOfCategory()} + '%'">LOCAL 30%</span>
+                            <span th:if="${!i.last}">· </span>
+                        </span>
+                    </td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title-row">
+            <h2 class="mt0 mb0">Draw runs</h2>
+            <a class="btn small" th:href="@{/admin/draw}">Draw console</a>
+        </div>
+        <p class="muted" th:if="${#lists.isEmpty(runs)}">
+            No draws have been run yet. A dry run is safe to do at any time and changes nothing.
+        </p>
+        <div class="table-wrap" th:if="${!#lists.isEmpty(runs)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>Run</th><th>Mode</th><th>Executed</th><th class="num">Allotted</th>
+                    <th class="num">Waitlisted</th><th class="num">Excluded</th><th>Rules</th>
+                    <th>Results hash</th><th>Published</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="r : ${runs}">
+                    <td><a th:href="@{/admin/draw/{id}(id=${r.id})}" th:text="'#' + ${r.id}">#1</a></td>
+                    <td><span class="badge" th:classappend="${r.mode.name() == 'FINAL'} ? 'info' : ''"
+                              th:text="${r.mode.label}">Dry run</span></td>
+                    <td th:text="${r.executedAtDisplay}">when</td>
+                    <td class="num tabular" th:text="${r.allotted}">600</td>
+                    <td class="num tabular" th:text="${r.waitlisted}">150</td>
+                    <td class="num tabular" th:text="${r.excluded}">200</td>
+                    <td th:text="'v' + ${r.ruleSetVersion}">v1</td>
+                    <td><span class="chip" th:text="${r.shortResultsHash}">hash</span></td>
+                    <td>
+                        <span th:if="${r.published}" class="badge ok">Published</span>
+                        <span th:unless="${r.published}" class="faint">-</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    </div>
+
+</div>
+</body>
+</html>

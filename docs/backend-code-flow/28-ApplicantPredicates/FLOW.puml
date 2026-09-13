@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.rules.ApplicantPredicates
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :AllocationEngine reserved pools; GET status qualifiesFor;
+stop
+note right
+  Named tests: LOCAL_RESIDENT, DIFFERENTLY_ABLED, WOMAN, EX_SERVICEMAN.
+  Source: src/main/java/com/fairhome/rules/ApplicantPredicates.java
+end note
+@enduml

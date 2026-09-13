@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Application received', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-head">
+        <div class="eyebrow">Application received</div>
+        <h1 th:if="${!receipt.heldForReview()}">You are in the draw</h1>
+        <h1 th:if="${receipt.heldForReview()}">Received, and held for a check</h1>
+    </div>
+
+    <div class="card">
+        <div class="grid two">
+            <div>
+                <div class="stat accent">
+                    <div class="label">Application number</div>
+                    <div class="value mono" th:text="${receipt.applicationNumber()}">FH-2026-000001</div>
+                    <div class="hint">Quote this in any correspondence.</div>
+                </div>
+            </div>
+            <div>
+                <div class="stat">
+                    <div class="label">Reference code</div>
+                    <div class="value mono" th:text="${receipt.statusLookupKey()}">A1B2C3D4</div>
+                    <div class="hint">Needed to see your own status. Do not share it.</div>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="kv"><span class="k">Status</span>
+            <span th:replace="~{fragments/bits :: statusBadge(${receipt.status()})}"></span>
+        </div>
+        <div class="kv"><span class="k">Provisional income category</span>
+            <strong th:text="${receipt.provisionalCategory()}">LIG</strong>
+        </div>
+
+        <p class="muted mt1" th:text="${receipt.status().applicantExplanation}">explanation</p>
+
+        <div class="banner warn" th:if="${receipt.heldForReview()}" style="margin-top:1rem">
+            <strong>Why this is being checked</strong>
+            <p class="mb0" style="font-size:0.9rem">
+                Our records already hold an application that may belong to the same person. Nothing has
+                been rejected. An officer will compare the two and, if they are different people, both
+                go into the draw. What we matched on:
+            </p>
+            <ul>
+                <li th:each="notice : ${receipt.duplicateNotices()}" th:text="${notice}">notice</li>
+            </ul>
+        </div>
+
+        <div class="form-actions">
+            <a class="btn" th:href="@{/status}">Check my status</a>
+            <a class="btn ghost" th:href="@{/verify(applicationNumber=${receipt.applicationNumber()})}">
+                See my lottery position calculation</a>
+            <a class="btn ghost" th:href="@{/}">Back to the scheme page</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="mt0">What happens next</h3>
+        <ol class="trace">
+            <li>Applications close, and the duplicate review queue is cleared. The rules do not permit a
+                final draw while any possible duplicate is unresolved.</li>
+            <li>The draw runs against the published rule book, using the seed published in advance.</li>
+            <li>The result is published, and your status page then shows your lottery position, your
+                category's cutoff, and the full reasoning behind your outcome.</li>
+        </ol>
+    </div>
+
+</div>
+</body>
+</html>

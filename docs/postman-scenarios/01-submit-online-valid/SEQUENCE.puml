@@ -1,0 +1,13 @@
+@startuml
+title Submit a clean online application
+skinparam backgroundColor #f8f1e3
+start
+  :Postman -> ApiController.register;
+  :IntakeService.submitOnline;
+  :NationalId + Verhoeff + age/income/declaration;
+  :DedupService.findCandidates (none strong);
+  :ApplicationRepository.save -> FH-year-id;
+  :AuditService.record APPLICATION_SUBMITTED_ONLINE;
+  :201 Receipt;
+stop
+@enduml

@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.seed.DemoDataSeeder
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :ApplicationRunner after boot if fairhome.demo-data.enabled=true;
+stop
+note right
+  First-start generator through IntakeService (~4000 apps).
+  Source: src/main/java/com/fairhome/seed/DemoDataSeeder.java
+end note
+@enduml

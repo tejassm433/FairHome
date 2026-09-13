@@ -1,0 +1,9 @@
+@startuml
+title Same person: keep one, reject the other
+skinparam backgroundColor #f8f1e3
+start
+  :DedupService.resolve CONFIRMED_DUPLICATE;
+  :drop -> REJECTED_DUPLICATE;
+  :keep stays SUBMITTED;
+stop
+@enduml

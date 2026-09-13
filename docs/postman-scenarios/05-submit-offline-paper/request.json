@@ -1,0 +1,20 @@
+{
+  "fullName": "Rahul Reddy",
+  "dateOfBirth": "1992-03-14",
+  "gender": "FEMALE",
+  "nationalId": "345678901238",
+  "phone": "9876543211",
+  "email": "rahul.reddy@example.com",
+  "addressLine": "12 Ward Road, North Zone",
+  "cityOrWard": "Ward 12",
+  "postalCode": "560001",
+  "annualIncome": 420000,
+  "yearsInArea": 9,
+  "differentlyAbled": false,
+  "exServiceman": false,
+  "firstTimeHomeBuyer": true,
+  "declarationAccepted": true,
+  "recordedBy": "Desk 1",
+  "paperReference": "CTR-2026-1104",
+  "paperSubmittedOn": "2026-01-20"
+}

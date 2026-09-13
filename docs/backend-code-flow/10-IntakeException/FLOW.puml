@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.application.IntakeException
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :IntakeService throws -> ApiExceptionHandler.intake;
+stop
+note right
+  Field errors that become HTTP 422 via ApiExceptionHandler.
+  Source: src/main/java/com/fairhome/application/IntakeException.java
+end note
+@enduml

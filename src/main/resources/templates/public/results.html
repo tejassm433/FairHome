@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Results', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-head">
+        <div class="eyebrow">Draw result</div>
+        <h1>Allotment results</h1>
+    </div>
+
+    <div class="card" th:if="${run == null}">
+        <h2 class="mt0">Nothing has been published yet</h2>
+        <p class="muted">
+            No draw result has been published. Officers may have rehearsed the draw internally, but a
+            rehearsal is not a result and is never shown here. When the official draw is published, this
+            page will carry the totals, the rule version it ran under and the hash of the result list.
+        </p>
+        <div class="pill-row">
+            <a class="btn ghost" th:href="@{/rules}">Read the rules in the meantime</a>
+            <a class="btn ghost" th:href="@{/status}">Check your application</a>
+        </div>
+    </div>
+
+    <div th:if="${run != null}">
+        <div class="grid four" style="margin-bottom:1.5rem">
+            <div class="stat success">
+                <div class="label">Flats allotted</div>
+                <div class="value" th:text="${run.allotted}">600</div>
+                <div class="hint" th:text="'of ' + ${run.totalFlats} + ' available'">of 600</div>
+            </div>
+            <div class="stat warn">
+                <div class="label">On waiting lists</div>
+                <div class="value" th:text="${run.waitlisted}">150</div>
+                <div class="hint">across all categories</div>
+            </div>
+            <div class="stat">
+                <div class="label">Applications in the draw</div>
+                <div class="value" th:text="${run.applicationsConsidered}">3800</div>
+                <div class="hint" th:text="${run.excluded} + ' excluded beforehand'">excluded</div>
+            </div>
+            <div class="stat accent">
+                <div class="label">Published</div>
+                <div class="value" style="font-size:1.05rem" th:text="${run.publishedAtDisplay}">date</div>
+                <div class="hint" th:text="'rule version ' + ${run.ruleSetVersion}">rules</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="mt0">Verification details</h2>
+            <table class="plain">
+                <tr><th>Lottery seed</th><td><span class="chip" th:text="${run.seed}">seed</span></td></tr>
+                <tr><th>Rule book hash</th><td><span class="chip" th:text="${run.ruleSetHash}">hash</span></td></tr>
+                <tr><th>Result list hash</th><td><span class="chip" th:text="${run.resultsHash}">hash</span></td></tr>
+                <tr><th>Vacant flats</th><td th:text="${run.vacantSeats}">0</td></tr>
+            </table>
+            <div class="pill-row mt1">
+                <a class="btn ghost small" th:href="@{/exports/draw/{id}/results.csv(id=${run.id})}">
+                    Full result list (CSV)</a>
+                <a class="btn ghost small" th:href="@{/exports/draw/{id}/workings.txt(id=${run.id})}">
+                    Step-by-step workings</a>
+                <a class="btn ghost small" th:href="@{/exports/rules/{v}.json(v=${run.ruleSetVersion})}">
+                    Rule book used</a>
+                <a class="btn ghost small" th:href="@{/api/results}">Results as JSON</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="mt0">By income category</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Category</th><th class="num">Allotted</th><th class="num">Waitlisted</th>
+                        <th class="num">Not selected</th><th class="num">Excluded</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="s : ${summary}">
+                        <td><strong th:text="${s.category()}">EWS</strong></td>
+                        <td class="num tabular" th:text="${s.allotted()}">150</td>
+                        <td class="num tabular" th:text="${s.waitlisted()}">38</td>
+                        <td class="num tabular" th:text="${s.notSelected()}">900</td>
+                        <td class="num tabular" th:text="${s.excluded()}">12</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="faint mt1 mb0" style="font-size:0.84rem">
+                Individual names are in the CSV rather than on this page. To see your own placement and the
+                reasoning behind it, use <a th:href="@{/status}">check your application</a>.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2 class="mt0">How the seats were divided</h2>
+            <p class="muted" style="font-size:0.9rem">
+                The arithmetic of the draw, in the order it happened, as written down by the engine while
+                it ran.
+            </p>
+            <pre th:text="${run.quotaWorkings}">workings</pre>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

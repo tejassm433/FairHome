@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.audit.AuditService
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :Almost every write calls record(); GET /api/admin/audit/verify;
+stop
+note right
+  Append hash-chained events; verifyChain; repair unstable Instant hashes on boot.
+  Source: src/main/java/com/fairhome/audit/AuditService.java
+end note
+@enduml

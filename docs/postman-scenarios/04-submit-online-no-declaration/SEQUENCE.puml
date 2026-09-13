@@ -1,0 +1,8 @@
+@startuml
+title Reject when declarationAccepted is false
+skinparam backgroundColor #f8f1e3
+start
+  :IntakeService checks declarationAccepted;
+  :422;
+stop
+@enduml

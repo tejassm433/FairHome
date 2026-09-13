@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.rules.RuleSetVersion
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :publish writes a new row; draws record version+hash;
+stop
+note right
+  Versioned stored JSON + content hash + active flag.
+  Source: src/main/java/com/fairhome/rules/RuleSetVersion.java
+end note
+@enduml

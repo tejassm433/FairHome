@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.draw.Allocation
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :GET status after publish reads this;
+stop
+note right
+  Per-application decision in a run: outcome, ranks, seat, token, explanation.
+  Source: src/main/java/com/fairhome/draw/Allocation.java
+end note
+@enduml

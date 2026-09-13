@@ -1,0 +1,44 @@
+{
+  "cases": [
+    {
+      "name": "honorifics and extra spaces do not create a second person",
+      "input": { "a": "Smt. Kavya  Menon", "b": "Kavya Menon" },
+      "expected": {
+        "normalisedA": "kavya menon",
+        "normalisedB": "kavya menon",
+        "sameAfterNormalising": true,
+        "similarity": 1.0
+      }
+    },
+    {
+      "name": "token order is ignored so a swapped first and last name still matches",
+      "input": { "a": "Menon Kavya", "b": "Kavya Menon" },
+      "expected": {
+        "sameAfterNormalising": true,
+        "similarity": 1.0
+      }
+    },
+    {
+      "name": "unrelated names stay well below the 0.88 hold threshold",
+      "input": { "a": "Arjun Reddy", "b": "Meera Iyer" },
+      "expected": {
+        "sameAfterNormalising": false,
+        "similarity": { "$lte": 0.7 }
+      }
+    },
+    {
+      "name": "phone numbers compare on the last 10 digits",
+      "input": { "a": "x", "b": "x", "phone": "+91 98765 43210" },
+      "expected": {
+        "normalisedPhone": "9876543210"
+      }
+    },
+    {
+      "name": "email comparison is case-insensitive",
+      "input": { "a": "x", "b": "x", "email": "Kavya.Menon@Example.IN" },
+      "expected": {
+        "normalisedEmail": "kavya.menon@example.in"
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "fullName": "Ananya Reddy",
+  "dateOfBirth": "1992-03-14",
+  "gender": "FEMALE",
+  "nationalId": "567890123458",
+  "phone": "9876543210",
+  "email": "ananya.reddy@example.com",
+  "addressLine": "12 Ward Road, North Zone",
+  "cityOrWard": "Ward 12",
+  "postalCode": "560001",
+  "annualIncome": 420000,
+  "yearsInArea": 9,
+  "differentlyAbled": false,
+  "exServiceman": false,
+  "firstTimeHomeBuyer": true,
+  "declarationAccepted": false
+}

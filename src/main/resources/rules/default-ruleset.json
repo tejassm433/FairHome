@@ -1,0 +1,100 @@
+{
+  "schemeName": "FairHome Phase-1 Housing Scheme 2026",
+  "rulesVersionLabel": "v1 - as notified",
+  "effectiveFrom": "2026-01-15",
+  "totalFlats": 600,
+
+  "draw": {
+    "rankStrategy": "SEEDED_LOTTERY",
+    "seed": "FAIRHOME-2026-PHASE1-PUBLIC-SEED-8QK4TZ",
+    "seedPublishedOn": "2026-01-15",
+    "notes": "Lottery order is the ascending SHA-256 of seed + ':' + application number. Anyone holding this seed and the list of application numbers can recompute the entire order with any SHA-256 tool and get the same answer."
+  },
+
+  "eligibility": {
+    "minAgeYears": 21,
+    "maxAgeYears": 70,
+    "requireIncomeWithinBands": true,
+    "allowFinalDrawWithOpenDuplicateReviews": false
+  },
+
+  "categories": [
+    {
+      "code": "EWS",
+      "label": "Economically Weaker Section",
+      "quotaPercent": 25,
+      "incomeMin": 0,
+      "incomeMax": 300000
+    },
+    {
+      "code": "LIG",
+      "label": "Low Income Group",
+      "quotaPercent": 35,
+      "incomeMin": 300001,
+      "incomeMax": 600000
+    },
+    {
+      "code": "MIG",
+      "label": "Middle Income Group",
+      "quotaPercent": 30,
+      "incomeMin": 600001,
+      "incomeMax": 1200000
+    },
+    {
+      "code": "HIG",
+      "label": "Higher Income Group",
+      "quotaPercent": 10,
+      "incomeMin": 1200001,
+      "incomeMax": null
+    }
+  ],
+
+  "reservations": [
+    {
+      "code": "LOCAL",
+      "label": "Existing residents of the scheme area",
+      "predicate": "LOCAL_RESIDENT",
+      "percentOfCategory": 30
+    },
+    {
+      "code": "PWD",
+      "label": "Persons with a certified disability",
+      "predicate": "DIFFERENTLY_ABLED",
+      "percentOfCategory": 5
+    },
+    {
+      "code": "WOMEN",
+      "label": "Women applicants",
+      "predicate": "WOMAN",
+      "percentOfCategory": 10
+    },
+    {
+      "code": "ESM",
+      "label": "Ex-servicemen",
+      "predicate": "EX_SERVICEMAN",
+      "percentOfCategory": 5
+    }
+  ],
+
+  "localResident": {
+    "minYearsInArea": 3,
+    "areaLabel": "Ward 12 to 18, North Zone"
+  },
+
+  "spill": {
+    "unfilledReservedSeats": "SPILL_TO_OPEN",
+    "unfilledCategorySeats": "POOL_BY_RANK"
+  },
+
+  "waitlist": {
+    "percentOfCategorySeats": 25
+  },
+
+  "duplicateDetection": {
+    "holdExactNationalIdForReview": true,
+    "nameSimilarityThreshold": 0.88,
+    "holdScoreThreshold": 0.8,
+    "matchOnPhone": true,
+    "matchOnEmail": true
+  }
+}

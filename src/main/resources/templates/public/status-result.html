@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('My status', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-head">
+        <div class="eyebrow mono" th:text="${application.applicationNumber}">FH-2026-000123</div>
+        <h1 th:text="${application.fullName}">Applicant name</h1>
+    </div>
+
+    <div class="grid two">
+        <div class="card">
+            <h3 class="mt0">Your application</h3>
+            <table class="plain">
+                <tr><th>Status</th>
+                    <td><span th:replace="~{fragments/bits :: statusBadge(${application.status})}"></span></td></tr>
+                <tr><th>Applied through</th>
+                    <td th:text="${application.channel.label}">Online form</td></tr>
+                <tr><th>Application date</th>
+                    <td th:text="${application.submittedOnDisplay}">3 Feb 2026</td></tr>
+                <tr><th>National ID on file</th>
+                    <td class="mono" th:text="${application.maskedNationalId}">XXXX XXXX 1234</td></tr>
+                <tr><th>Income category</th>
+                    <td>
+                        <strong th:if="${category != null}" th:text="${category.code()}">LIG</strong>
+                        <span th:if="${category != null}" class="faint"
+                              th:text="' · ' + ${category.label()}"></span>
+                        <span th:if="${category == null}" class="badge rejected">No band matches</span>
+                    </td></tr>
+                <tr><th>Existing-resident quota</th>
+                    <td>
+                        <span th:if="${localResidentQualified}" class="badge ok">Qualifies</span>
+                        <span th:unless="${localResidentQualified}" class="badge">Does not qualify</span>
+                        <div class="faint" style="font-size:0.82rem"
+                             th:text="${application.yearsInArea} + ' year(s) in the area recorded; '
+                                 + ${rules.localResident().minYearsInArea()} + ' needed.'"></div>
+                    </td></tr>
+            </table>
+            <div class="banner info" th:if="${application.statusNote != null}" style="margin-top:1rem">
+                <strong>Note on file</strong>
+                <span th:text="${application.statusNote}"></span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="mt0">The draw</h3>
+
+            <div th:if="${run == null}">
+                <p class="muted">
+                    The draw has not been published yet. Nothing has been decided about your application,
+                    and no dry run an officer does in the meantime counts as a result.
+                </p>
+                <p class="muted mb0">
+                    You can already check that your lottery position is fixed and not up to anyone's
+                    discretion:
+                    <a th:href="@{/verify(applicationNumber=${application.applicationNumber})}">
+                        recompute it yourself</a>.
+                </p>
+            </div>
+
+            <div th:if="${run != null}">
+                <div th:if="${allocation == null}">
+                    <p class="muted mb0">
+                        This application was not part of the published draw. That happens when it was held
+                        or rejected before the draw ran; the status on the left explains which.
+                    </p>
+                </div>
+                <div th:if="${allocation != null}">
+                    <div class="pill-row" style="margin-bottom:1rem">
+                        <span th:replace="~{fragments/bits :: outcomeBadge(${allocation.outcome})}"></span>
+                        <span th:if="${allocation.seatNumber != null}" class="badge info"
+                              th:text="'Allotment serial ' + ${allocation.seatNumber}"></span>
+                        <span th:if="${allocation.waitlistPosition != null}" class="badge waitlisted"
+                              th:text="'Waiting list position ' + ${allocation.waitlistPosition}"></span>
+                    </div>
+                    <p th:text="${allocation.reasonText}">reason</p>
+                    <table class="plain">
+                        <tr><th>Your position in <span th:text="${allocation.categoryCode}">LIG</span></th>
+                            <td class="tabular">
+                                <strong th:text="${allocation.rankInCategory}">132</strong>
+                                of <span th:text="${allocation.categoryApplicantCount}">1340</span>
+                            </td></tr>
+                        <tr th:if="${allocation.poolCode != null}"><th>Seat pool</th>
+                            <td th:text="${allocation.poolCode}">LOCAL</td></tr>
+                        <tr><th>Your lottery token</th>
+                            <td><span class="chip" th:text="${allocation.shortToken} + '…'">abc</span></td></tr>
+                        <tr><th>Rule book used</th>
+                            <td>
+                                version <span th:text="${run.ruleSetVersion}">1</span>,
+                                hash <span class="chip" th:text="${run.shortRuleSetHash}">hash</span>
+                            </td></tr>
+                        <tr><th>Result list hash</th>
+                            <td><span class="chip" th:text="${run.shortResultsHash}">hash</span></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" th:if="${allocation != null}">
+        <div class="card-title-row">
+            <h2 class="mt0 mb0">How this was decided</h2>
+            <a class="btn ghost small"
+               th:href="@{/verify(applicationNumber=${application.applicationNumber})}">Verify my position</a>
+        </div>
+        <p class="muted" style="font-size:0.9rem">
+            This is the record the engine wrote at the moment it made the decision, not a summary put
+            together afterwards.
+        </p>
+        <ol class="trace">
+            <li th:each="line : ${allocation.explanationLines}"
+                th:text="${#strings.substringAfter(line, '. ')}">step</li>
+        </ol>
+        <hr>
+        <p class="faint mb0" style="font-size:0.85rem">
+            If you believe a fact on your application is wrong, or that a rule was applied incorrectly,
+            quote your application number and the reason code
+            <span class="chip" th:text="${allocation.reasonCode}">CODE</span>
+            when you write to the allotment office. The complete workings of this draw are published as
+            <a th:href="@{/exports/draw/{id}/workings.txt(id=${run.id})}">a plain text file</a>.
+        </p>
+    </div>
+
+    <div class="form-actions">
+        <a class="btn ghost" th:href="@{/status}">Look up another application</a>
+        <a class="btn ghost" th:href="@{/rules}">Read the rules that were applied</a>
+    </div>
+
+</div>
+</body>
+</html>

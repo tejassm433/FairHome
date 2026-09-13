@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.dedup.DedupService
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :IntakeService.findCandidates -> raiseFlags; ApiController.resolve -> resolve;
+stop
+note right
+  findCandidatesAgainst + raiseFlags + resolve. Never auto-rejects.
+  Source: src/main/java/com/fairhome/dedup/DedupService.java
+end note
+@enduml

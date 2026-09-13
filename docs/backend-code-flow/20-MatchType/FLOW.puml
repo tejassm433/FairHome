@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.dedup.MatchType
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :DedupService.keepStrongest per existing application;
+stop
+note right
+  EXACT_NATIONAL_ID, NAME_AND_DOB, NAME_AND_PHONE, EMAIL.
+  Source: src/main/java/com/fairhome/dedup/MatchType.java
+end note
+@enduml

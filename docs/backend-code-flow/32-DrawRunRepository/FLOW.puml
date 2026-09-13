@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.draw.DrawRunRepository
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :runVisibleToApplicants;
+stop
+note right
+  Find published run, all runs.
+  Source: src/main/java/com/fairhome/draw/DrawRunRepository.java
+end note
+@enduml

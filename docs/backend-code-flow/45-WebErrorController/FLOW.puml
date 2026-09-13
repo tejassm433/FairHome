@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.web.WebErrorController
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :Does not affect Postman /api;
+stop
+note right
+  HTML error pages for MVC. API errors go to ApiExceptionHandler.
+  Source: src/main/java/com/fairhome/web/WebErrorController.java
+end note
+@enduml

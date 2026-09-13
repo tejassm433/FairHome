@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.web.PublicController
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :Prefer GET /api/applications/{n}/status for Postman;
+stop
+note right
+  HTML public pages. Status POST uses the same lookup as the API.
+  Source: src/main/java/com/fairhome/web/PublicController.java
+end note
+@enduml

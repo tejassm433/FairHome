@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Verify a draw position', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-head">
+        <div class="eyebrow">Independent verification</div>
+        <h1>Recompute a lottery position yourself</h1>
+        <p class="lead">
+            You should not have to take our word for the draw. Enter any application number and this page
+            shows the exact input string and the SHA-256 of it that fixed that application's place in the
+            queue, along with the command to reproduce it on your own machine.
+        </p>
+    </div>
+
+    <div class="card" style="max-width:760px">
+        <form th:action="@{/verify}" method="get">
+            <div class="field">
+                <label for="applicationNumber">Application number</label>
+                <input type="text" id="applicationNumber" name="applicationNumber" class="mono"
+                       th:value="${applicationNumber}" placeholder="FH-2026-000123" required>
+            </div>
+            <div class="form-actions">
+                <button class="btn" type="submit">Compute the lottery token</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card" th:if="${token != null}">
+        <h2 class="mt0">Result</h2>
+        <div class="kv"><span class="k">Published seed</span>
+            <span class="chip" th:text="${rules.draw().seed()}">seed</span></div>
+        <div class="kv"><span class="k">String that gets hashed</span>
+            <span class="chip" th:text="${hashInput}">seed:FH-...</span></div>
+        <div class="kv"><span class="k">Lottery token</span>
+            <span class="chip" th:text="${token}">hash</span></div>
+
+        <h3 class="mt2">Check it on your own machine</h3>
+        <pre th:text="${shellEquivalent}">printf '%s' "seed:FH-2026-000123" | sha256sum</pre>
+        <p class="muted mb0">
+            Applications are sorted by this token, smallest first. Doing that for every application number
+            reproduces the whole draw order, without needing this website, our database or our source code.
+        </p>
+    </div>
+
+    <div class="card">
+        <h2 class="mt0">Why it is built this way</h2>
+        <p class="muted">
+            A seeded random number generator would be reproducible in theory, but only for someone running
+            the same programming language and library version we did. That is not verification, it is a
+            second act of trust. A hash of two published strings can be checked with a one-line command
+            on any computer, which is the whole point.
+        </p>
+        <p class="muted mb0" th:if="${run != null}">
+            The published result also carries a hash over the entire ordered decision list
+            (<span class="chip" th:text="${run.resultsHash}">hash</span>), so a downloaded copy of the
+            list can be checked for tampering without access to our systems.
+        </p>
+    </div>
+
+</div>
+</body>
+</html>

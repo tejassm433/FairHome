@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Audit trail', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-head">
+        <div class="eyebrow">Accountability</div>
+        <h1>Audit trail</h1>
+        <p class="lead">
+            Every application recorded, every duplicate decision, every rule version published and every
+            draw run, in order. Each entry hashes its own contents together with the previous entry's hash,
+            so removing or editing one entry breaks the chain from that point on.
+        </p>
+    </div>
+
+    <div class="banner" th:classappend="${chain.valid()} ? 'success' : 'error'">
+        <strong th:text="${chain.valid()} ? 'Chain verified' : 'Chain broken'">status</strong>
+        <span th:text="${chain.message()}">message</span>
+        <div class="faint mt1" style="font-size:0.83rem">
+            Verification recomputes SHA-256 over every entry's own fields plus the hash before it, and
+            compares. <a th:href="@{/api/admin/audit/verify}" target="_blank" rel="noopener">Same check as JSON</a> ·
+            <a th:href="@{/exports/audit.csv}">Download the whole trail</a>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th class="num">#</th><th>When</th><th>Action</th><th class="wrap">Subject</th>
+                <th class="wrap">Actor</th><th class="wrap">Detail</th><th>Entry hash</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="e : ${events.content}">
+                <td class="num tabular" th:text="${e.sequence}">1</td>
+                <td th:text="${e.occurredAtDisplay}">when</td>
+                <td><span class="badge"
+                          th:classappend="${#strings.startsWith(e.action, 'DRAW')} ? 'info'
+                              : (${#strings.contains(e.action, 'DUPLICATE')} ? 'held' : '')"
+                          th:text="${e.action}">ACTION</span></td>
+                <td class="wrap mono" style="font-size:0.8rem" th:text="${e.subject}">subject</td>
+                <td class="wrap faint" th:text="${e.actor}">actor</td>
+                <td class="wrap" style="font-size:0.83rem; min-width:34ch" th:text="${e.detail}">detail</td>
+                <td><span class="chip" th:text="${e.shortHash}">hash</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:replace="~{fragments/bits :: pager(${events})}"></div>
+
+</div>
+</body>
+</html>

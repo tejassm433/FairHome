@@ -1,0 +1,9 @@
+@startuml
+title Final draw refused while flags are open
+skinparam backgroundColor #f8f1e3
+start
+  :DrawService.run FINAL;
+  :openCount > 0 and allowFinalDrawWithOpenDuplicateReviews false;
+  :DrawRefusedException 409;
+stop
+@enduml

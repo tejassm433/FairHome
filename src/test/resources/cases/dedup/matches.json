@@ -1,0 +1,138 @@
+{
+  "cases": [
+    {
+      "name": "the same national ID is an exact match even if the name is written differently",
+      "input": {
+        "config": {
+          "holdExactNationalIdForReview": true,
+          "nameSimilarityThreshold": 0.88,
+          "holdScoreThreshold": 0.8,
+          "matchOnPhone": true,
+          "matchOnEmail": true
+        },
+        "existing": [
+          {
+            "id": 1,
+            "applicationNumber": "FH-2026-000001",
+            "fullName": "Kavya Menon",
+            "dateOfBirth": "1990-04-11",
+            "nationalId": "234567890124",
+            "status": "SUBMITTED"
+          }
+        ],
+        "candidate": {
+          "fullName": "Smt. Kavya Menon",
+          "dateOfBirth": "1990-04-11",
+          "nationalId": "234567890124"
+        }
+      },
+      "expected": {
+        "matchCount": 1,
+        "matches": [
+          {
+            "existingApplicationNumber": "FH-2026-000001",
+            "matchType": "EXACT_NATIONAL_ID",
+            "score": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "name": "a mistyped ID with the same name and date of birth is still flagged",
+      "input": {
+        "config": {
+          "holdExactNationalIdForReview": true,
+          "nameSimilarityThreshold": 0.88,
+          "holdScoreThreshold": 0.8,
+          "matchOnPhone": true,
+          "matchOnEmail": true
+        },
+        "existing": [
+          {
+            "id": 1,
+            "applicationNumber": "FH-2026-000001",
+            "fullName": "Kavya Menon",
+            "dateOfBirth": "1990-04-11",
+            "nationalId": "234567890124",
+            "status": "SUBMITTED"
+          }
+        ],
+        "candidate": {
+          "fullName": "Kavya Menon",
+          "dateOfBirth": "1990-04-11",
+          "nationalId": "987654321012"
+        }
+      },
+      "expected": {
+        "matchCount": 1,
+        "matches": [
+          {
+            "existingApplicationNumber": "FH-2026-000001",
+            "matchType": "NAME_AND_DOB",
+            "score": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "name": "a withdrawn application is not treated as a live earlier claim",
+      "input": {
+        "config": {
+          "holdExactNationalIdForReview": true,
+          "nameSimilarityThreshold": 0.88,
+          "holdScoreThreshold": 0.8,
+          "matchOnPhone": true,
+          "matchOnEmail": true
+        },
+        "existing": [
+          {
+            "id": 1,
+            "applicationNumber": "FH-2026-000001",
+            "fullName": "Kavya Menon",
+            "dateOfBirth": "1990-04-11",
+            "nationalId": "234567890124",
+            "status": "WITHDRAWN"
+          }
+        ],
+        "candidate": {
+          "fullName": "Kavya Menon",
+          "dateOfBirth": "1990-04-11",
+          "nationalId": "234567890124"
+        }
+      },
+      "expected": {
+        "matchCount": 0,
+        "matches": []
+      }
+    },
+    {
+      "name": "two different people who share only a common first name are not flagged",
+      "input": {
+        "config": {
+          "holdExactNationalIdForReview": true,
+          "nameSimilarityThreshold": 0.88,
+          "holdScoreThreshold": 0.8,
+          "matchOnPhone": true,
+          "matchOnEmail": true
+        },
+        "existing": [
+          {
+            "id": 1,
+            "applicationNumber": "FH-2026-000001",
+            "fullName": "Kavya Menon",
+            "dateOfBirth": "1990-04-11",
+            "nationalId": "234567890124"
+          }
+        ],
+        "candidate": {
+          "fullName": "Arjun Reddy",
+          "dateOfBirth": "1984-09-02",
+          "nationalId": "987654321012"
+        }
+      },
+      "expected": {
+        "matchCount": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+@startuml
+title Different people, both stay in the draw
+skinparam backgroundColor #f8f1e3
+start
+  :DedupService.resolve;
+  :both PENDING_* with no other flags -> SUBMITTED;
+  :Audit DUPLICATE_RESOLVED;
+stop
+@enduml

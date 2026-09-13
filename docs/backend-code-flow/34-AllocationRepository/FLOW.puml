@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.draw.AllocationRepository
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :Admin draw detail + API describe;
+stop
+note right
+  Search/filter/page decisions; category summary.
+  Source: src/main/java/com/fairhome/draw/AllocationRepository.java
+end note
+@enduml

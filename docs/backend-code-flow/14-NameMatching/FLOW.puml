@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.support.NameMatching
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :DedupService NAME_AND_DOB / NAME_AND_PHONE;
+stop
+note right
+  Normalise name/phone/email and similarity score for fuzzy dedup.
+  Source: src/main/java/com/fairhome/support/NameMatching.java
+end note
+@enduml

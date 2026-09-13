@@ -1,0 +1,122 @@
+{
+  "cases": [
+    {
+      "name": "the shipped default rule book is valid",
+      "input": {
+        "schemeName": "FairHome Phase-1 Housing Scheme 2026",
+        "rulesVersionLabel": "v1 - as notified",
+        "effectiveFrom": "2026-01-15",
+        "totalFlats": 600,
+        "draw": {
+          "rankStrategy": "SEEDED_LOTTERY",
+          "seed": "FAIRHOME-2026-PHASE1-PUBLIC-SEED-8QK4TZ",
+          "seedPublishedOn": "2026-01-15",
+          "notes": "test"
+        },
+        "eligibility": {
+          "minAgeYears": 21,
+          "maxAgeYears": 70,
+          "requireIncomeWithinBands": true,
+          "allowFinalDrawWithOpenDuplicateReviews": false
+        },
+        "categories": [
+          { "code": "EWS", "label": "EWS", "quotaPercent": 25, "incomeMin": 0, "incomeMax": 300000 },
+          { "code": "LIG", "label": "LIG", "quotaPercent": 35, "incomeMin": 300001, "incomeMax": 600000 },
+          { "code": "MIG", "label": "MIG", "quotaPercent": 30, "incomeMin": 600001, "incomeMax": 1200000 },
+          { "code": "HIG", "label": "HIG", "quotaPercent": 10, "incomeMin": 1200001, "incomeMax": null }
+        ],
+        "reservations": [
+          { "code": "LOCAL", "label": "Local", "predicate": "LOCAL_RESIDENT", "percentOfCategory": 30 }
+        ],
+        "localResident": { "minYearsInArea": 3, "areaLabel": "Ward 12 to 18, North Zone" },
+        "spill": { "unfilledReservedSeats": "SPILL_TO_OPEN", "unfilledCategorySeats": "POOL_BY_RANK" },
+        "waitlist": { "percentOfCategorySeats": 25 },
+        "duplicateDetection": {
+          "holdExactNationalIdForReview": true,
+          "nameSimilarityThreshold": 0.88,
+          "holdScoreThreshold": 0.8,
+          "matchOnPhone": true,
+          "matchOnEmail": true
+        },
+        "classifyIncome": "420000"
+      },
+      "expected": {
+        "valid": true,
+        "categoryForIncome": "LIG"
+      }
+    },
+    {
+      "name": "category quotas that do not add to 100 are refused",
+      "input": {
+        "schemeName": "Broken",
+        "rulesVersionLabel": "bad",
+        "effectiveFrom": "2026-01-01",
+        "totalFlats": 100,
+        "draw": { "rankStrategy": "SEEDED_LOTTERY", "seed": "X", "seedPublishedOn": "2026-01-01", "notes": "" },
+        "eligibility": { "minAgeYears": 21, "maxAgeYears": 70, "requireIncomeWithinBands": true, "allowFinalDrawWithOpenDuplicateReviews": false },
+        "categories": [
+          { "code": "EWS", "label": "EWS", "quotaPercent": 40, "incomeMin": 0, "incomeMax": 300000 },
+          { "code": "LIG", "label": "LIG", "quotaPercent": 40, "incomeMin": 300001, "incomeMax": null }
+        ],
+        "reservations": [],
+        "localResident": { "minYearsInArea": 3, "areaLabel": "area" },
+        "spill": { "unfilledReservedSeats": "SPILL_TO_OPEN", "unfilledCategorySeats": "HOLD_VACANT" },
+        "waitlist": { "percentOfCategorySeats": 0 },
+        "duplicateDetection": { "holdExactNationalIdForReview": true, "nameSimilarityThreshold": 0.88, "holdScoreThreshold": 0.8, "matchOnPhone": true, "matchOnEmail": true }
+      },
+      "expected": {
+        "valid": false,
+        "problems": { "$contains": "add up to exactly 100" }
+      }
+    },
+    {
+      "name": "a reserved quota cannot invent its own eligibility test",
+      "input": {
+        "schemeName": "Broken",
+        "rulesVersionLabel": "bad",
+        "effectiveFrom": "2026-01-01",
+        "totalFlats": 100,
+        "draw": { "rankStrategy": "SEEDED_LOTTERY", "seed": "X", "seedPublishedOn": "2026-01-01", "notes": "" },
+        "eligibility": { "minAgeYears": 21, "maxAgeYears": 70, "requireIncomeWithinBands": true, "allowFinalDrawWithOpenDuplicateReviews": false },
+        "categories": [
+          { "code": "EWS", "label": "EWS", "quotaPercent": 100, "incomeMin": 0, "incomeMax": null }
+        ],
+        "reservations": [
+          { "code": "VIP", "label": "Friends of the minister", "predicate": "KNOWS_SOMEONE", "percentOfCategory": 10 }
+        ],
+        "localResident": { "minYearsInArea": 3, "areaLabel": "area" },
+        "spill": { "unfilledReservedSeats": "SPILL_TO_OPEN", "unfilledCategorySeats": "HOLD_VACANT" },
+        "waitlist": { "percentOfCategorySeats": 0 },
+        "duplicateDetection": { "holdExactNationalIdForReview": true, "nameSimilarityThreshold": 0.88, "holdScoreThreshold": 0.8, "matchOnPhone": true, "matchOnEmail": true }
+      },
+      "expected": {
+        "valid": false,
+        "problems": { "$contains": "unknown predicate" }
+      }
+    },
+    {
+      "name": "a gap between income bands is refused so nobody can fall through",
+      "input": {
+        "schemeName": "Broken",
+        "rulesVersionLabel": "bad",
+        "effectiveFrom": "2026-01-01",
+        "totalFlats": 100,
+        "draw": { "rankStrategy": "SEEDED_LOTTERY", "seed": "X", "seedPublishedOn": "2026-01-01", "notes": "" },
+        "eligibility": { "minAgeYears": 21, "maxAgeYears": 70, "requireIncomeWithinBands": true, "allowFinalDrawWithOpenDuplicateReviews": false },
+        "categories": [
+          { "code": "EWS", "label": "EWS", "quotaPercent": 50, "incomeMin": 0, "incomeMax": 300000 },
+          { "code": "LIG", "label": "LIG", "quotaPercent": 50, "incomeMin": 400000, "incomeMax": null }
+        ],
+        "reservations": [],
+        "localResident": { "minYearsInArea": 3, "areaLabel": "area" },
+        "spill": { "unfilledReservedSeats": "SPILL_TO_OPEN", "unfilledCategorySeats": "HOLD_VACANT" },
+        "waitlist": { "percentOfCategorySeats": 0 },
+        "duplicateDetection": { "holdExactNationalIdForReview": true, "nameSimilarityThreshold": 0.88, "holdScoreThreshold": 0.8, "matchOnPhone": true, "matchOnEmail": true }
+      },
+      "expected": {
+        "valid": false,
+        "problems": { "$contains": "not contiguous" }
+      }
+    }
+  ]
+}

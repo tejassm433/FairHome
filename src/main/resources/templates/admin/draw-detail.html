@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Draw run', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div th:replace="~{fragments/bits :: flash}"></div>
+
+    <div class="page-head">
+        <div class="eyebrow" th:text="'Draw run #' + ${run.id}">run</div>
+        <h1 th:text="${run.mode.label}">Final draw</h1>
+        <div class="pill-row">
+            <span th:if="${run.published}" class="badge ok">Published as the official result</span>
+            <span th:unless="${run.published}" class="badge">Not published</span>
+            <span class="badge info" th:text="'rule version ' + ${run.ruleSetVersion}">v1</span>
+            <span class="faint" style="font-size:0.85rem"
+                  th:text="'executed ' + ${run.executedAtDisplay} + ' by ' + ${run.executedBy}">when</span>
+        </div>
+    </div>
+
+    <div class="stack">
+
+    <div class="grid four">
+        <div class="stat success">
+            <div class="label">Allotted</div>
+            <div class="value" th:text="${run.allotted}">600</div>
+            <div class="hint" th:text="'of ' + ${run.totalFlats} + ' flats'">of 600</div>
+        </div>
+        <div class="stat warn">
+            <div class="label">Waitlisted</div>
+            <div class="value" th:text="${run.waitlisted}">150</div>
+        </div>
+        <div class="stat">
+            <div class="label">Not selected</div>
+            <div class="value" th:text="${run.notSelected}">2500</div>
+            <div class="hint" th:text="${run.applicationsConsidered} + ' were in the draw'">in draw</div>
+        </div>
+        <div class="stat danger">
+            <div class="label">Excluded before the draw</div>
+            <div class="value" th:text="${run.excluded}">300</div>
+            <div class="hint" th:text="${run.vacantSeats} + ' flat(s) left vacant'">vacant</div>
+        </div>
+    </div>
+
+    <div class="grid two">
+        <div class="card">
+            <h2 class="mt0">Provenance</h2>
+            <table class="plain">
+                <tr><th>Rule version</th>
+                    <td>
+                        <span th:text="${run.ruleSetVersion}">1</span> ·
+                        <a th:href="@{/exports/rules/{v}.json(v=${run.ruleSetVersion})}">download</a>
+                    </td></tr>
+                <tr><th>Rule content hash</th>
+                    <td class="wrap"><span class="chip" th:text="${run.ruleSetHash}">hash</span></td></tr>
+                <tr><th>Lottery seed</th>
+                    <td class="wrap"><span class="chip" th:text="${run.seed}">seed</span></td></tr>
+                <tr><th>Results hash</th>
+                    <td class="wrap"><span class="chip" th:text="${run.resultsHash}">hash</span></td></tr>
+                <tr th:if="${run.note != null}"><th>Note</th><td th:text="${run.note}">note</td></tr>
+            </table>
+            <div class="pill-row mt1">
+                <a class="btn ghost small" th:href="@{/exports/draw/{id}/results.csv(id=${run.id})}">
+                    Results (CSV)</a>
+                <a class="btn ghost small" th:href="@{/exports/draw/{id}/workings.txt(id=${run.id})}">
+                    Workings (text)</a>
+                <a class="btn ghost small" th:href="@{/api/draws/{id}(id=${run.id})}">JSON</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="mt0">Publication</h2>
+            <div th:if="${run.mode.name() == 'DRY_RUN'}">
+                <p class="muted">
+                    Dry runs cannot be published. They exist so a rule change or a data fix can be tested
+                    without any chance of a rehearsal being mistaken for the result.
+                </p>
+                <form th:action="@{/admin/draw/{id}/delete(id=${run.id})}" method="post">
+                    <button class="btn danger small" type="submit">Delete this dry run</button>
+                </form>
+            </div>
+            <div th:if="${run.mode.name() == 'FINAL'}">
+                <div th:unless="${run.published}">
+                    <p class="muted">
+                        Publishing makes this the official result: applicants can see their own placement and
+                        reasoning, and the public results page goes live.
+                    </p>
+                    <form th:action="@{/admin/draw/{id}/publish(id=${run.id})}" method="post">
+                        <button class="btn" type="submit">Publish as the official result</button>
+                    </form>
+                </div>
+                <div th:if="${run.published}">
+                    <p class="muted" th:text="'Published ' + ${run.publishedAtDisplay} + '.'">published</p>
+                    <p class="muted" style="font-size:0.9rem">
+                        Withdrawing a published result is possible but requires a written reason, which goes
+                        on the audit trail. It is deliberately awkward.
+                    </p>
+                    <form th:action="@{/admin/draw/{id}/withdraw(id=${run.id})}" method="post"
+                          style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center">
+                        <input type="text" name="reason" required style="min-width:240px"
+                               placeholder="Reason for withdrawing the published result">
+                        <button class="btn danger small" type="submit">Withdraw publication</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="mt0">By income category</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Category</th><th class="num">Allotted</th><th class="num">Waitlisted</th>
+                    <th class="num">Not selected</th><th class="num">Excluded</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="s : ${summary}">
+                    <td><strong th:text="${s.category()}">EWS</strong></td>
+                    <td class="num tabular" th:text="${s.allotted()}">150</td>
+                    <td class="num tabular" th:text="${s.waitlisted()}">38</td>
+                    <td class="num tabular" th:text="${s.notSelected()}">900</td>
+                    <td class="num tabular" th:text="${s.excluded()}">12</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="mt0">Every decision in this run</h2>
+        <form class="filters" th:action="@{/admin/draw/{id}(id=${run.id})}" method="get">
+            <div class="field" style="min-width:230px">
+                <label for="q">Search</label>
+                <input type="search" id="q" name="q" th:value="${q}" placeholder="name or application number">
+            </div>
+            <div class="field">
+                <label for="outcome">Outcome</label>
+                <select id="outcome" name="outcome">
+                    <option value="">Any</option>
+                    <option th:each="o : ${outcomes}" th:value="${o}" th:text="${o.label}"
+                            th:selected="${outcome != null and outcome.name() == o.name()}">outcome</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="category">Category</label>
+                <select id="category" name="category">
+                    <option value="">Any</option>
+                    <option th:each="c : ${rules.categories()}" th:value="${c.code()}" th:text="${c.code()}"
+                            th:selected="${category == c.code()}">EWS</option>
+                </select>
+            </div>
+            <button class="btn" type="submit">Filter</button>
+            <a class="btn ghost" th:href="@{/admin/draw/{id}(id=${run.id})}">Clear</a>
+        </form>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th class="num">Serial</th><th>Application</th><th class="wrap">Name</th>
+                    <th>Outcome</th><th>Category</th><th>Pool</th>
+                    <th class="num">Rank in category</th><th class="num">Waitlist</th>
+                    <th>Token</th><th class="wrap">Reason</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="a, row : ${results.content}">
+                    <td class="num tabular"
+                        th:text="${results.number * results.size + row.count}">1</td>
+                    <td><a th:href="@{/admin/applications/{n}(n=${a.applicationNumber})}" class="mono"
+                           th:text="${a.applicationNumber}">FH-1</a></td>
+                    <td class="wrap" th:text="${a.applicantName}">name</td>
+                    <td><span th:replace="~{fragments/bits :: outcomeBadge(${a.outcome})}"></span></td>
+                    <td th:text="${a.categoryCode}">LIG</td>
+                    <td th:text="${a.poolCode}">OPEN</td>
+                    <td class="num tabular" th:text="${a.rankInCategory}">132</td>
+                    <td class="num tabular" th:text="${a.waitlistPosition}"></td>
+                    <td><span class="chip" th:text="${#strings.substring(a.lotteryToken, 0, 8)}">abcd</span></td>
+                    <td class="wrap faint" style="font-size:0.82rem" th:text="${a.reasonText}">reason</td>
+                </tr>
+                <tr th:if="${results.totalElements == 0}">
+                    <td colspan="10" class="muted" style="text-align:center; padding:2rem">
+                        Nothing matches that filter.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:replace="~{fragments/bits :: pager(${results})}"></div>
+    </div>
+
+    <div class="card">
+        <h2 class="mt0">Workings</h2>
+        <p class="muted" style="font-size:0.9rem">
+            What the engine wrote down as it ran, step by step. This is the document to hand over when
+            someone asks how 600 flats became these particular numbers.
+        </p>
+        <pre th:text="${run.quotaWorkings}">workings</pre>
+    </div>
+
+    </div>
+
+</div>
+</body>
+</html>

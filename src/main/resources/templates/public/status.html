@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('My status', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="page-head">
+        <div class="eyebrow">Applicant self-service</div>
+        <h1>Check your application</h1>
+        <p class="lead">
+            Enter the application number and the reference code from your receipt. Once the draw is
+            published, this page also shows where you came in the lottery and exactly why.
+        </p>
+    </div>
+
+    <div class="banner error" th:if="${error}">
+        <strong>Not found</strong>
+        <span th:text="${error}"></span>
+    </div>
+
+    <div class="card" style="max-width:640px">
+        <form th:action="@{/status}" method="post">
+            <div class="field">
+                <label for="applicationNumber">Application number</label>
+                <input type="text" id="applicationNumber" name="applicationNumber" required
+                       th:value="${applicationNumber}" placeholder="FH-2026-000123" class="mono">
+            </div>
+            <div class="field">
+                <label for="referenceCode">Reference code</label>
+                <input type="text" id="referenceCode" name="referenceCode" required maxlength="12"
+                       placeholder="8 characters" class="mono" autocomplete="off">
+                <div class="help">
+                    Printed on your receipt. It stops anyone else reading your placement.
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn" type="submit">Show my status</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card" style="max-width:640px">
+        <h3 class="mt0">Lost your reference code?</h3>
+        <p class="muted mb0" style="font-size:0.9rem">
+            Bring the receipt or the paper acknowledgement to the allotment office. Staff can look the
+            application up by ID number in the admin console. We do not email codes out, because an email
+            address on an application is not proof of who is asking.
+        </p>
+    </div>
+
+</div>
+</body>
+</html>

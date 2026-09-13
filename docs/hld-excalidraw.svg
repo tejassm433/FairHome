@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="820" viewBox="0 0 1100 820" role="img" aria-labelledby="title desc">
+  <title id="title">FairHome HLD - Ananya Reddy allotment</title>
+  <desc id="desc">Excalidraw-style board: applicant, engine and officer for one application from form to published result.</desc>
+  <defs>
+    <filter id="paper" x="-2%" y="-2%" width="104%" height="104%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" result="n"/>
+      <feDiffuseLighting in="n" lighting-color="#fff8e7" surfaceScale="0.6">
+        <feDistantLight azimuth="40" elevation="60"/>
+      </feDiffuseLighting>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M1,1 L9,5 L1,9 Z" fill="#1e1e1e"/>
+    </marker>
+  </defs>
+
+  <rect width="1100" height="820" fill="#f8f1e3"/>
+  <rect width="1100" height="820" fill="#f8f1e3" filter="url(#paper)" opacity="0.35"/>
+
+  <g transform="rotate(-1.2 200 48)">
+    <rect x="36" y="22" width="420" height="58" rx="4" fill="#fff3bf" stroke="#1e1e1e" stroke-width="2"/>
+    <text x="56" y="46" font-family="Comic Sans MS, Segoe Print, cursive" font-size="22" fill="#1e1e1e">FairHome - one flow, both desks</text>
+    <text x="56" y="68" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13" fill="#495057">Example: Ananya Reddy, LIG, FH-2026-004128</text>
+  </g>
+
+  <g transform="rotate(1.4 980 48)">
+    <rect x="820" y="24" width="250" height="54" rx="4" fill="#d0ebff" stroke="#1e1e1e" stroke-width="2"/>
+    <text x="838" y="46" font-family="Comic Sans MS, Segoe Print, cursive" font-size="14" fill="#1e1e1e">Java 21 / Spring Boot / H2 file</text>
+    <text x="838" y="66" font-family="Comic Sans MS, Segoe Print, cursive" font-size="12" fill="#495057">one jar, no extra database server</text>
+  </g>
+
+  <text x="90" y="118" font-family="Comic Sans MS, Segoe Print, cursive" font-size="16" fill="#0b7285">APPLICANT</text>
+  <text x="490" y="118" font-family="Comic Sans MS, Segoe Print, cursive" font-size="16" fill="#5c3d00">ENGINE</text>
+  <text x="860" y="118" font-family="Comic Sans MS, Segoe Print, cursive" font-size="16" fill="#5f3dc4">OFFICER</text>
+
+  <g transform="rotate(-0.8 180 200)">
+    <rect x="40" y="140" width="300" height="110" rx="8" fill="#c3fae8" stroke="#1e1e1e" stroke-width="2.2"/>
+    <text x="58" y="168" font-family="Comic Sans MS, Segoe Print, cursive" font-size="16" font-weight="700">1. Ananya fills /apply</text>
+    <text x="58" y="192" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Aadhaar ...4821, Rs 4.2L, 9 yrs Ward 12</text>
+    <text x="58" y="212" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">She only ever sees public pages.</text>
+    <text x="58" y="232" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Gets receipt R8K2-M41Q</text>
+  </g>
+  <line x1="348" y1="195" x2="392" y2="195" stroke="#1e1e1e" stroke-width="2" marker-end="url(#arrow)"/>
+  <g transform="rotate(0.6 530 200)">
+    <rect x="400" y="140" width="300" height="110" rx="8" fill="#fff3bf" stroke="#1e1e1e" stroke-width="2.2"/>
+    <text x="418" y="168" font-family="Comic Sans MS, Segoe Print, cursive" font-size="16" font-weight="700">Validates + numbers</text>
+    <text x="418" y="192" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Verhoeff check, LIG band</text>
+    <text x="418" y="212" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Issues FH-2026-004128</text>
+    <text x="418" y="232" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Writes an audit row</text>
+  </g>
+  <g transform="rotate(1.1 900 200)">
+    <rect x="760" y="150" width="300" height="90" rx="8" fill="#f1f3f5" stroke="#1e1e1e" stroke-width="1.6" stroke-dasharray="7 5"/>
+    <text x="778" y="188" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13" fill="#868e96">Officer is not in this step.</text>
+    <text x="778" y="210" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13" fill="#868e96">Public form never hits /admin.</text>
+  </g>
+
+  <g transform="rotate(0.7 180 360)">
+    <rect x="40" y="300" width="300" height="110" rx="8" fill="#c3fae8" stroke="#1e1e1e" stroke-width="2.2"/>
+    <text x="58" y="328" font-family="Comic Sans MS, Segoe Print, cursive" font-size="16" font-weight="700">2. Receipt says held</text>
+    <text x="58" y="352" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Form is saved, not rejected.</text>
+    <text x="58" y="372" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">She can poll /status anytime</text>
+    <text x="58" y="392" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">with number + receipt code.</text>
+  </g>
+  <line x1="348" y1="355" x2="392" y2="355" stroke="#1e1e1e" stroke-width="2" marker-end="url(#arrow)"/>
+  <g transform="rotate(-0.5 530 360)">
+    <rect x="400" y="300" width="300" height="110" rx="8" fill="#ffc9c9" stroke="#1e1e1e" stroke-width="2.2"/>
+    <text x="418" y="328" font-family="Comic Sans MS, Segoe Print, cursive" font-size="16" font-weight="700">Possible duplicate</text>
+    <text x="418" y="352" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Paper FH-2026-001104</text>
+    <text x="418" y="372" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">same DOB, name ~92%, ID off by 1</text>
+    <text x="418" y="392" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Queue. Never auto-delete.</text>
+  </g>
+  <line x1="708" y1="355" x2="752" y2="355" stroke="#1e1e1e" stroke-width="2" marker-end="url(#arrow)"/>
+  <g transform="rotate(0.9 900 360)">
+    <rect x="760" y="300" width="300" height="110" rx="8" fill="#e5dbff" stroke="#1e1e1e" stroke-width="2.2"/>
+    <text x="778" y="328" font-family="Comic Sans MS, Segoe Print, cursive" font-size="16" font-weight="700">Opens review queue</text>
+    <text x="778" y="352" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Side-by-side fields.</text>
+    <text x="778" y="372" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Different people, both stay.</text>
+    <text x="778" y="392" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Note: siblings, forms compared.</text>
+  </g>
+
+  <g transform="rotate(-0.4 180 520)">
+    <rect x="40" y="460" width="300" height="100" rx="8" fill="#f1f3f5" stroke="#1e1e1e" stroke-width="1.6" stroke-dasharray="7 5"/>
+    <text x="58" y="498" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13" fill="#868e96">Ananya waits. Final draw is</text>
+    <text x="58" y="518" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13" fill="#868e96">blocked while any flag is open.</text>
+    <text x="58" y="538" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13" fill="#868e96">Dry runs stay invisible to her.</text>
+  </g>
+  <g transform="rotate(0.8 530 520)">
+    <rect x="400" y="460" width="300" height="100" rx="8" fill="#fff3bf" stroke="#1e1e1e" stroke-width="2.2"/>
+    <text x="418" y="488" font-family="Comic Sans MS, Segoe Print, cursive" font-size="16" font-weight="700">3-4. Seeded lottery</text>
+    <text x="418" y="512" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">SHA-256(seed : FH-2026-004128)</text>
+    <text x="418" y="532" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">sort up inside LIG, LOCAL first</text>
+  </g>
+  <line x1="708" y1="510" x2="752" y2="510" stroke="#1e1e1e" stroke-width="2" marker-end="url(#arrow)"/>
+  <g transform="rotate(-0.7 900 520)">
+    <rect x="760" y="460" width="300" height="100" rx="8" fill="#e5dbff" stroke="#1e1e1e" stroke-width="2.2"/>
+    <text x="778" y="488" font-family="Comic Sans MS, Segoe Print, cursive" font-size="16" font-weight="700">Dry run, final, publish</text>
+    <text x="778" y="512" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Rehearsal never goes public.</text>
+    <text x="778" y="532" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Run #2 becomes the result.</text>
+  </g>
+
+  <g transform="rotate(-0.6 180 680)">
+    <rect x="40" y="610" width="300" height="110" rx="8" fill="#c3fae8" stroke="#1e1e1e" stroke-width="2.2"/>
+    <text x="58" y="638" font-family="Comic Sans MS, Segoe Print, cursive" font-size="16" font-weight="700">5. Checks /status</text>
+    <text x="58" y="662" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">FH-2026-004128 + R8K2-M41Q</text>
+    <text x="58" y="682" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Allotted, LIG / LOCAL, serial 47</text>
+    <text x="58" y="702" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Full reason, only her row.</text>
+  </g>
+  <line x1="348" y1="665" x2="392" y2="665" stroke="#1e1e1e" stroke-width="2" marker-end="url(#arrow)"/>
+  <g transform="rotate(0.5 530 680)">
+    <rect x="400" y="610" width="300" height="110" rx="8" fill="#fff3bf" stroke="#1e1e1e" stroke-width="2.2"/>
+    <text x="418" y="638" font-family="Comic Sans MS, Segoe Print, cursive" font-size="16" font-weight="700">Replayable proof</text>
+    <text x="418" y="662" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Anyone can sha256 the seed + number.</text>
+    <text x="418" y="682" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">Rule-file hash + results hash</text>
+    <text x="418" y="702" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">are what leave the building.</text>
+  </g>
+  <line x1="708" y1="665" x2="752" y2="665" stroke="#1e1e1e" stroke-width="2" marker-end="url(#arrow)"/>
+  <g transform="rotate(0.8 900 680)">
+    <rect x="760" y="610" width="300" height="110" rx="8" fill="#e5dbff" stroke="#1e1e1e" stroke-width="2.2"/>
+    <text x="778" y="638" font-family="Comic Sans MS, Segoe Print, cursive" font-size="16" font-weight="700">Hands over workings</text>
+    <text x="778" y="662" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">CSV, text workings, JSON</text>
+    <text x="778" y="682" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">The pack for a newspaper</text>
+    <text x="778" y="702" font-family="Comic Sans MS, Segoe Print, cursive" font-size="13">or a courtroom.</text>
+  </g>
+
+  <line x1="190" y1="250" x2="190" y2="296" stroke="#1e1e1e" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="550" y1="250" x2="550" y2="296" stroke="#1e1e1e" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="550" y1="410" x2="550" y2="456" stroke="#1e1e1e" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="910" y1="410" x2="910" y2="456" stroke="#1e1e1e" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="190" y1="560" x2="190" y2="606" stroke="#1e1e1e" stroke-width="1.6" marker-end="url(#arrow)"/>
+  <line x1="550" y1="560" x2="550" y2="606" stroke="#1e1e1e" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+  <text x="40" y="800" font-family="Comic Sans MS, Segoe Print, cursive" font-size="12" fill="#868e96">Same intake for online and paper. Same rule file for the draw. Same audit chain for every decision.</text>
+</svg>

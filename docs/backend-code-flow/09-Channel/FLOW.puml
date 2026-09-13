@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.application.Channel
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :submitOnline vs recordOffline;
+stop
+note right
+  ONLINE or OFFLINE. Same intake path either way.
+  Source: src/main/java/com/fairhome/application/Channel.java
+end note
+@enduml

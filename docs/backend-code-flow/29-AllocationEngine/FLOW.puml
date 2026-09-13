@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.draw.AllocationEngine
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :DrawService.run -> engine.run -> list of decisions;
+stop
+note right
+  Pure function: exclude, token=SHA256(seed:number), quotas, spill, waitlist, reasons.
+  Source: src/main/java/com/fairhome/draw/AllocationEngine.java
+end note
+@enduml

@@ -1,0 +1,7 @@
+@startuml
+title List every draw run
+skinparam backgroundColor #f8f1e3
+start
+  :DrawService.allRuns;
+stop
+@enduml

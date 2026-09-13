@@ -1,0 +1,7 @@
+{
+  "status": 422,
+  "message": "The application was not accepted.",
+  "fieldErrors": {
+    "dateOfBirth": "The scheme is open to applicants aged 21 to 70. This applicant is ..."
+  }
+}

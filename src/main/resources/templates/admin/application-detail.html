@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Application', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div th:replace="~{fragments/bits :: flash}"></div>
+
+    <div class="page-head">
+        <div class="eyebrow mono" th:text="${application.applicationNumber}">FH-2026-000123</div>
+        <h1 th:text="${application.fullName}">name</h1>
+        <div class="pill-row">
+            <span th:replace="~{fragments/bits :: statusBadge(${application.status})}"></span>
+            <span class="badge" th:text="${application.channel.label}">channel</span>
+            <span class="badge info" th:if="${category != null}" th:text="${category.code()}">LIG</span>
+        </div>
+    </div>
+
+    <div class="grid two">
+        <div class="card">
+            <h3 class="mt0">Applicant details as submitted</h3>
+            <table class="plain">
+                <tr><th>Name on the form</th><td th:text="${application.fullName}">name</td></tr>
+                <tr><th>Normalised for matching</th>
+                    <td class="mono faint" th:text="${application.normalisedName}">name</td></tr>
+                <tr><th>Date of birth</th>
+                    <td th:text="${application.dateOfBirthDisplay} + ' (age ' + ${application.age} + ')'">dob</td></tr>
+                <tr><th>Gender</th><td th:text="${application.gender.label}">Female</td></tr>
+                <tr><th>National ID</th>
+                    <td class="mono" th:text="${application.maskedNationalId}">XXXX XXXX 1234</td></tr>
+                <tr><th>Phone</th><td th:text="${application.phone}">phone</td></tr>
+                <tr><th>Email</th><td th:text="${application.email}">email</td></tr>
+                <tr><th>Address</th><td th:text="${application.addressLine}">address</td></tr>
+                <tr><th>Ward</th><td th:text="${application.cityOrWard}">ward</td></tr>
+                <tr><th>Annual income</th>
+                    <td th:text="'₹' + ${#numbers.formatInteger(application.annualIncome, 1, 'COMMA')}">income</td></tr>
+                <tr><th>Years in the scheme area</th><td th:text="${application.yearsInArea}">5</td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3 class="mt0">Intake record</h3>
+            <table class="plain">
+                <tr><th>Channel</th><td th:text="${application.channel.label}">channel</td></tr>
+                <tr><th>Application date</th><td th:text="${application.submittedOnDisplay}">date</td></tr>
+                <tr><th>Keyed into the system</th><td th:text="${application.recordedAtDisplay}">date</td></tr>
+                <tr th:if="${application.recordedBy != null}"><th>Entered by</th>
+                    <td th:text="${application.recordedBy}">officer</td></tr>
+                <tr th:if="${application.paperReference != null}"><th>Paper reference</th>
+                    <td class="mono" th:text="${application.paperReference}">PF/2026/1</td></tr>
+                <tr><th>Reference code</th>
+                    <td><span class="chip" th:text="${application.statusLookupKey}">CODE</span></td></tr>
+                <tr th:if="${application.statusNote != null}"><th>Note on file</th>
+                    <td th:text="${application.statusNote}">note</td></tr>
+            </table>
+
+            <h3 class="mt2">Quota tests</h3>
+            <p class="faint" style="font-size:0.83rem">
+                Evaluated against the active rule book, exactly as the draw would.
+            </p>
+            <div class="pill-row">
+                <span th:each="entry : ${qualifies}" class="badge"
+                      th:classappend="${entry.value} ? 'ok' : ''"
+                      th:text="${entry.key} + (${entry.value} ? ' ✓' : ' ✗')">test</span>
+            </div>
+
+            <div class="form-actions" th:if="${application.status.name() != 'WITHDRAWN'}">
+                <form th:action="@{/admin/applications/{n}/withdraw(n=${application.applicationNumber})}"
+                      method="post" style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center">
+                    <input type="text" name="reason" placeholder="Reason for withdrawal"
+                           style="min-width:220px">
+                    <button class="btn danger small" type="submit">Mark as withdrawn</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="mt0">Duplicate flags</h2>
+        <p class="muted" th:if="${#lists.isEmpty(flags)}">
+            No duplicate suspicion was ever raised against this application.
+        </p>
+        <div class="table-wrap" th:if="${!#lists.isEmpty(flags)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>Match</th><th class="num">Confidence</th><th class="wrap">Evidence</th>
+                    <th>Newer</th><th>Earlier</th><th>Decision</th><th class="wrap">Reason given</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="f : ${flags}">
+                    <td th:text="${f.matchType.label}">match</td>
+                    <td class="num" th:text="${f.scorePercent} + '%'">90%</td>
+                    <td class="wrap" th:text="${f.evidence}">evidence</td>
+                    <td><a th:href="@{/admin/applications/{n}(n=${f.newApplicationNumber})}" class="mono"
+                           th:text="${f.newApplicationNumber}">FH-2</a></td>
+                    <td><a th:href="@{/admin/applications/{n}(n=${f.existingApplicationNumber})}" class="mono"
+                           th:text="${f.existingApplicationNumber}">FH-1</a></td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${f.resolution.name() == 'OPEN'} ? 'held'
+                                  : (${f.resolution.name() == 'CONFIRMED_DUPLICATE'} ? 'rejected' : 'ok')"
+                              th:text="${f.resolution.label}">status</span>
+                        <div class="faint" style="font-size:0.8rem" th:if="${f.resolvedBy != null}"
+                             th:text="${f.resolvedAtDisplay} + ' · ' + ${f.resolvedBy}">when</div>
+                    </td>
+                    <td class="wrap" th:text="${f.resolutionNote}">note</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="mt0">Outcome in each draw run</h2>
+        <p class="muted" th:if="${#lists.isEmpty(allocationHistory)}">
+            This application has not been part of any draw run yet.
+        </p>
+        <div th:each="alloc : ${allocationHistory}" th:if="${!#lists.isEmpty(allocationHistory)}"
+             style="margin-bottom:1.5rem">
+            <div class="pill-row" style="margin-bottom:0.5rem">
+                <a class="badge info" th:href="@{/admin/draw/{id}(id=${alloc.drawRunId})}"
+                   th:text="'run #' + ${alloc.drawRunId}">run</a>
+                <span th:replace="~{fragments/bits :: outcomeBadge(${alloc.outcome})}"></span>
+                <span class="badge" th:if="${alloc.categoryCode != null}"
+                      th:text="${alloc.categoryCode} + ' · ' + ${alloc.poolCode != null ? alloc.poolCode : '-'}">cat</span>
+                <span class="chip" th:text="${alloc.reasonCode}">CODE</span>
+            </div>
+            <p style="font-size:0.9rem" th:text="${alloc.reasonText}">reason</p>
+            <ol class="trace">
+                <li th:each="line : ${alloc.explanationLines}"
+                    th:text="${#strings.substringAfter(line, '. ')}">step</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <a class="btn ghost" th:href="@{/admin/applications}">Back to the register</a>
+        <a class="btn ghost" th:href="@{/verify(applicationNumber=${application.applicationNumber})}">
+            Verify this lottery position</a>
+    </div>
+
+</div>
+</body>
+</html>

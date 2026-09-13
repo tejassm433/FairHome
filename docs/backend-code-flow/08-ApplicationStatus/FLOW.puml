@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.application.ApplicationStatus
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :Intake sets PENDING_*; DedupService.resolve sets SUBMITTED or REJECTED_DUPLICATE;
+stop
+note right
+  SUBMITTED, PENDING_DUPLICATE_REVIEW, REJECTED_DUPLICATE, WITHDRAWN.
+  Source: src/main/java/com/fairhome/application/ApplicationStatus.java
+end note
+@enduml

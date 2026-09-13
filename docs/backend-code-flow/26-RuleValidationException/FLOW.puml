@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.rules.RuleValidationException
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :RuleSetService.validate -> ApiExceptionHandler.rules;
+stop
+note right
+  HTTP 422 list of problems when a rule book is illegal.
+  Source: src/main/java/com/fairhome/rules/RuleValidationException.java
+end note
+@enduml

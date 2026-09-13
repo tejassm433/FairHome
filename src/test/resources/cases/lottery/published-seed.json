@@ -1,0 +1,15 @@
+{
+  "cases": [
+    {
+      "name": "the published seed and application number hash to a known token",
+      "input": {
+        "seed": "FAIRHOME-2026-PHASE1-PUBLIC-SEED-8QK4TZ",
+        "applicationNumber": "FH-2026-004001"
+      },
+      "expected": {
+        "input": "FAIRHOME-2026-PHASE1-PUBLIC-SEED-8QK4TZ:FH-2026-004001",
+        "lotteryToken": "e0cc6855ab7cd60e97e45697f94aeb4d148a335cd039c5a921afebd86bd2395d"
+      }
+    }
+  ]
+}

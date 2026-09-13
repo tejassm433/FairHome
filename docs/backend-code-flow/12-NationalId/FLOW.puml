@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.support.NationalId
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :IntakeService.canonicalise + isStructurallyValid;
+stop
+note right
+  Strip separators, refuse 0/1 prefix, Verhoeff, mask last-4.
+  Source: src/main/java/com/fairhome/support/NationalId.java
+end note
+@enduml

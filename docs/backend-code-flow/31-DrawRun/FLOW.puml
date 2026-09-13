@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.draw.DrawRun
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :saved by DrawService; GET /api/draws/{id};
+stop
+note right
+  One execution: mode, seed, hashes, counts, published flag, workings text.
+  Source: src/main/java/com/fairhome/draw/DrawRun.java
+end note
+@enduml

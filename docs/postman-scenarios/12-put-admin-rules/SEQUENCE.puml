@@ -1,0 +1,10 @@
+@startuml
+title Publish a new rule version (HTTP Basic)
+skinparam backgroundColor #f8f1e3
+start
+  :ApiController.publishRules;
+  :parse + canonicalise + validate;
+  :RuleSetService.publish;
+  :Audit RULES_PUBLISHED;
+stop
+@enduml

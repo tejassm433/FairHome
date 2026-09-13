@@ -1,0 +1,7 @@
+@startuml
+title List every published rule version
+skinparam backgroundColor #f8f1e3
+start
+  :RuleSetService.history;
+stop
+@enduml

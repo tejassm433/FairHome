@@ -1,0 +1,10 @@
+@startuml
+title Officer keys a paper form (HTTP Basic)
+skinparam backgroundColor #f8f1e3
+start
+  :Basic auth -> ApiController.recordOffline;
+  :IntakeService.recordOffline requires recordedBy + paperReference;
+  :Channel.OFFLINE;
+  :201 Receipt;
+stop
+@enduml

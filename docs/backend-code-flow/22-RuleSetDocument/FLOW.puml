@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.rules.RuleSetDocument
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :RuleSetService.parse -> engine + intake + status;
+stop
+note right
+  Parsed JSON rule book: categories, reservations, draw seed, spill, waitlist, dedup cfg.
+  Source: src/main/java/com/fairhome/rules/RuleSetDocument.java
+end note
+@enduml

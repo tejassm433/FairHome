@@ -1,0 +1,38 @@
+{
+  "cases": [
+    {
+      "name": "spaces and grouping are stripped before the checksum is checked",
+      "input": { "raw": "2345 6789 0124" },
+      "expected": {
+        "canonical": "234567890124",
+        "valid": true,
+        "last4": "0124",
+        "masked": "XXXX XXXX 0124"
+      }
+    },
+    {
+      "name": "a number that fails Verhoeff is rejected",
+      "input": { "raw": "234567890123" },
+      "expected": {
+        "canonical": "234567890123",
+        "valid": false
+      }
+    },
+    {
+      "name": "eleven digits is structurally invalid even if the checksum would pass a shorter string",
+      "input": { "raw": "23456789012" },
+      "expected": {
+        "canonical": "23456789012",
+        "valid": false
+      }
+    },
+    {
+      "name": "a leading 0 is rejected the way a real Aadhaar number would be",
+      "input": { "raw": "012345678901" },
+      "expected": {
+        "canonical": "012345678901",
+        "valid": false
+      }
+    }
+  ]
+}

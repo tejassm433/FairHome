@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.draw.DrawService
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :POST /api/admin/draws -> run; POST .../publish -> publish;
+stop
+note right
+  Load applicants, refuse final if queue open, persist DrawRun + Allocation rows, publish.
+  Source: src/main/java/com/fairhome/draw/DrawService.java
+end note
+@enduml

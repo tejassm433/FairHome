@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.web.ExportController
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :GET /exports/... (Basic for some admin exports);
+stop
+note right
+  CSV/TXT/JSON file downloads for draws, rules, applications, audit.
+  Source: src/main/java/com/fairhome/web/ExportController.java
+end note
+@enduml

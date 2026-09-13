@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.application.Application
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :IntakeService.toEntity -> ApplicationRepository.save -> later Dedup/Draw read it;
+stop
+note right
+  Persisted claim. Holds status, masked ID, lookup key, channel.
+  Source: src/main/java/com/fairhome/application/Application.java
+end note
+@enduml

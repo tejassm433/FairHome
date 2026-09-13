@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.audit.AuditEvent
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :canonicalPayload hashed with Hashes.sha256Hex;
+stop
+note right
+  sequence, actor, action, detail, previousHash, entryHash (epoch millis payload).
+  Source: src/main/java/com/fairhome/audit/AuditEvent.java
+end note
+@enduml

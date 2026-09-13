@@ -1,0 +1,10 @@
+@startuml
+title Run a dry run (allowed even with an open queue)
+skinparam backgroundColor #f8f1e3
+start
+  :DrawService.run DRY_RUN;
+  :AllocationEngine.run;
+  :persist DrawRun + Allocation;
+  :does not go public;
+stop
+@enduml

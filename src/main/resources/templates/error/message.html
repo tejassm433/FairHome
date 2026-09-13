@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:replace="~{fragments/layout :: page('Something went wrong', ~{::content})}">
+<body>
+<div th:fragment="content">
+
+    <div class="card" style="max-width:640px">
+        <h1 class="mt0" th:text="${heading}">Something went wrong</h1>
+        <p class="muted" th:text="${detail}">detail</p>
+        <div class="form-actions">
+            <a class="btn ghost" th:href="@{/}">Back to the scheme page</a>
+            <a class="btn ghost" th:href="@{/admin}">Admin console</a>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

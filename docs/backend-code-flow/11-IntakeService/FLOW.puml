@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.application.IntakeService
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :ApiController.register -> submitOnline -> NationalId -> DedupService -> persist -> AuditService -> Receipt;
+stop
+note right
+  Single door: validate ID/age/income/declaration, lock, dedup, persist, audit, receipt.
+  Source: src/main/java/com/fairhome/application/IntakeService.java
+end note
+@enduml

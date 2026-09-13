@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.dedup.DuplicateFlagRepository
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :openQueue / openQueue(Pageable);
+stop
+note right
+  Open queue by score, flags for an application id, counts.
+  Source: src/main/java/com/fairhome/dedup/DuplicateFlagRepository.java
+end note
+@enduml

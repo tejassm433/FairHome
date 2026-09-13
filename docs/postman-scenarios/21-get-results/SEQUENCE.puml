@@ -1,0 +1,8 @@
+@startuml
+title Public results list (empty until a FINAL is published)
+skinparam backgroundColor #f8f1e3
+start
+  :runVisibleToApplicants;
+  :or allotments[] after publish;
+stop
+@enduml

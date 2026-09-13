@@ -1,0 +1,8 @@
+@startuml
+title Recompute SHA-256(seed : applicationNumber)
+skinparam backgroundColor #f8f1e3
+start
+  :RuleSetDocument.draw.seed;
+  :Hashes.sha256Hex;
+stop
+@enduml

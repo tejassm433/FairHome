@@ -1,0 +1,8 @@
+@startuml
+title Read the active published rule book
+skinparam backgroundColor #f8f1e3
+start
+  :ApiController.activeRules;
+  :RuleSetService.activeVersion + parse;
+stop
+@enduml

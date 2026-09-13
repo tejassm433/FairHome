@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.draw.Outcome
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :Allocation.outcome;
+stop
+note right
+  ALLOTTED, WAITLISTED, NOT_SELECTED, EXCLUDED.
+  Source: src/main/java/com/fairhome/draw/Outcome.java
+end note
+@enduml

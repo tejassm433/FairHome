@@ -1,0 +1,12 @@
+@startuml
+title Code flow - com.fairhome.audit.AuditEventRepository
+skinparam backgroundColor #f8f1e3
+skinparam activityBackgroundColor #fff3bf
+start
+  :AuditService.record / page;
+stop
+note right
+  maxSequence, ordered pages.
+  Source: src/main/java/com/fairhome/audit/AuditEventRepository.java
+end note
+@enduml
