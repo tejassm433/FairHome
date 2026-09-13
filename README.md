@@ -234,7 +234,7 @@ http://localhost:8080
 
 ```text
 Username: admin
-Password: FairHome@2026
+Password: admin
 ```
 
 These credentials are only for local evaluation.
@@ -265,12 +265,29 @@ or:
 
 ## 11. Assumptions
 
-* This assignment focuses on application intake, eligibility, duplicate review, allocation, and result explanation.
-* Disability and ex-serviceman status are declared but supporting documents are not verified by the system.
-* A single officer account is used for the demo.
-* The application runs as one process.
-* H2 is used instead of PostgreSQL to keep the project easy to run on a clean machine.
-* The audit log is stored in the same database. A production system would use stronger protection and separate audit storage.
+- There are **600 identical flats** in this phase. We do not consider the floor, block, or flat size during allocation.
+
+- The **income category is decided by the system** based on the income entered by the applicant. Applicants cannot choose their own category such as EWS, LIG, MIG, or HIG.
+
+- An **existing resident** is someone who has lived continuously in the specified area for at least 3 years. This period can be changed in the configuration. Existing residents have a reserved quota within each income category. It is not used as a tie breaker.
+
+- **Reserved quotas work along with the main category.** If an applicant qualifies for a reserved quota, they are considered for those reserved flats first. They can also compete for the remaining open flats.
+
+- The system uses the **largest remainder method** to convert percentage based quotas into whole numbers. Reserved seats within each category are rounded down first, so they cannot reduce the number of open seats.
+
+- If some **reserved seats are not filled**, they are added back to the open seats of that category. If some seats in an entire income category remain unfilled, they are redistributed across the scheme based on lottery rank. Both rules are defined in the configuration.
+
+- The **waiting list contains 25% of the seats** available for each category. The number is rounded up when needed.
+
+- When an officer confirms that two applications are duplicates, the **earlier application is kept by default**. The officer can choose to keep the later application instead if there is a valid reason.
+
+- Around **4,000 demo applications** are created when the application starts for the first time. They go through the same intake process as real applications, so the duplicate review queue contains actual results from the duplicate detection logic.
+
+- There is **one shared officer login** for the demo. There is no separate staff directory, different officer roles, password reset, or SSO.
+
+- The application runs as **one process**. Application intake is handled one at a time using a lock. If multiple application instances are used in the future, a database level lock would be needed.
+
+- The application uses **H2 in file mode** instead of keeping everything in memory. This allows the draw and other important data to remain available even after the application is restarted.
 
 ---
 
